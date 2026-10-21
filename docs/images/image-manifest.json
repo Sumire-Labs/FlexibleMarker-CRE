@@ -1,0 +1,26 @@
+[
+  {
+    "path": "src/main/resources/logo.png",
+    "width": 128,
+    "height": 128,
+    "bytes": 4652
+  },
+  {
+    "path": "docs/images/curseforge-icon.png",
+    "width": 512,
+    "height": 512,
+    "bytes": 7623
+  },
+  {
+    "path": "docs/images/modrinth-icon.png",
+    "width": 512,
+    "height": 512,
+    "bytes": 7623
+  },
+  {
+    "path": "docs/images/github-social-preview.png",
+    "width": 1280,
+    "height": 640,
+    "bytes": 44509
+  }
+]

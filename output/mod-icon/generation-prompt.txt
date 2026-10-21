@@ -1,0 +1,15 @@
+Generated with the built-in image_gen tool.
+
+Initial prompt:
+Use case: product-mockup.
+Asset type: square Minecraft mod icon, 1024x1024.
+Input image 1: enlarged original Minecraft Flexible Marker texture, authoritative color and pixel pattern reference. Dark gray surrounding it is only a preview backdrop. Input image 2: original item sprite reference.
+Create one polished, photo-like studio 3D render of the exact Flexible Marker block. Preserve Minecraft angular cuboid geometry and the original saturated yellow stem and vivid lime-green head. The actual model is a slender vertical square pole 2 units wide, 2 deep, 10 tall, with four tiny cubic side protrusions near the top: at height 7 to 9, each side extends 1 unit, forming a compact plus-shaped green collar 4 units wide and 4 deep. The pole continues 1 unit above that collar. Bottom 6 units of the pole are bright yellow, top 4 are green, with a subtle light-green horizontal pixel band near the top as in the source. No separate base, no buttons, no cylindrical parts. This is one small upright Minecraft marker, not a pen, not a road cone.
+Camera: elevated three-quarter view from about 30 degrees above horizontal, looking diagonally down at the object, showing its top and two sides. Fill roughly 78 percent of square height with centered complete subject and generous unclipped margins.
+Style: clean premium product photograph of a tangible voxel object, crisp flat cuboid faces, original simple pixel texture, soft realistic studio illumination from upper left, strong readable differences between lit top, front and shaded side, subtle ambient occlusion in the collar joints. Keep hard Minecraft silhouette, no rounded bevels or photoreal surface noise.
+Backdrop: seamless deep charcoal with a very subtle dark-gray radial lighting gradient and a soft contact shadow under the stem, elegantly isolated, high contrast.
+No writing, lettering, logos, watermarks, borders, extra markers, lasers, scenery or other objects.
+
+Final correction:
+Edit the generated product image. Keep the excellent three-quarter elevated camera, green cross-shaped head, clean cuboid geometry, dark charcoal studio background, composition and soft light exactly as they are. Correct only the long lower stem: every face of the stem below the green head must be SOLID BRIGHT YELLOW, continuously from the green section down to the very bottom. Remove ALL black patches and remove the cyan blue bottom entirely, replacing them with the same continuous yellow material. Side faces may be darker golden yellow due to lighting, but there must be absolutely no black, blue, turquoise, stripes or pattern anywhere on the stem. This matches the actual block texture in the repository. No text. Square mod icon.
+

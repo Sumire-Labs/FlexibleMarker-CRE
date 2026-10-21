@@ -1,8 +1,12 @@
 # Flexible Marker CRE (Cleanroom Edition)
 
+<img src="src/main/resources/logo.png" alt="Flexible Marker icon" align="left" width="80" height="80">
+
 This mod requires Cleanroom Loader.
 
 A Cleanroom port of [Flexible Marker](https://www.curseforge.com/minecraft/mc-mods/flexiblemarker).
+
+<br clear="all">
 
 ## Description
 

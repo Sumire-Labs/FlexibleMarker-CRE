@@ -8,6 +8,7 @@
     "url": "@{mod_url}",
     "authorList": [ @{mod_authors} ],
     "credits": "@{mod_credits}",
+    "logoFile": "@{mod_logo_path}",
     "dependencies": [ "modularui" ],
     "modProperties": { "issueTrackerUrl": "@{mod_issue_tracker}" }
   }
