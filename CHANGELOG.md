@@ -1,3 +1,7 @@
+## 3.0.1
+
+- Update Mod icon
+
 ## 3.0.0
 
 - Ported the mod to Cleanroom Loader. Standard Forge is no longer supported.
