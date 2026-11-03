@@ -1,6 +1,7 @@
 package com.kotori316.marker.packet;
 
-import io.netty.buffer.ByteBuf;
+import com.kotori316.marker.IAreaConfigurable;
+
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.tileentity.TileEntity;
@@ -12,19 +13,19 @@ import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
-import com.kotori316.marker.IAreaConfigurable;
+import io.netty.buffer.ByteBuf;
 
 /**
  * To Client Only
  */
 public class AreaMessage implements IMessage {
+
     private BlockPos pos;
     private int dim;
     private BlockPos min, max;
 
     @SuppressWarnings("unused")
-    public AreaMessage() {
-    }
+    public AreaMessage() {}
 
     public AreaMessage(BlockPos pos, int dim, BlockPos min, BlockPos max) {
         this.pos = pos;
@@ -54,7 +55,8 @@ public class AreaMessage implements IMessage {
         TileEntity entity = world.getTileEntity(message.pos);
         if (entity instanceof IAreaConfigurable && world.provider.getDimension() == message.dim) {
             IAreaConfigurable marker = (IAreaConfigurable) entity;
-            FMLCommonHandler.instance().getWorldThread(ctx.netHandler).addScheduledTask(marker.setMinMax(message.min, message.max));
+            FMLCommonHandler.instance().getWorldThread(ctx.netHandler)
+                .addScheduledTask(marker.setMinMax(message.min, message.max));
         }
         return null;
     }
@@ -63,4 +65,5 @@ public class AreaMessage implements IMessage {
     private static World world() {
         return Minecraft.getMinecraft().world;
     }
+
 }

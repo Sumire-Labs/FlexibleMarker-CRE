@@ -1,5 +1,8 @@
 package com.kotori316.marker;
 
+import com.kotori316.marker.gui.GuiHandler;
+import com.kotori316.marker.packet.PacketHandler;
+
 import net.minecraft.block.Block;
 import net.minecraft.item.Item;
 import net.minecraft.tileentity.TileEntity;
@@ -12,12 +15,9 @@ import net.minecraftforge.fml.common.network.NetworkRegistry;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
-import com.kotori316.marker.gui.GuiHandler;
-import com.kotori316.marker.packet.PacketHandler;
-
-@Mod(modid = Marker.modID, name = Marker.ModName, version = MarkerTags.VERSION,
-    dependencies = "required-after:cleanroom;required-after:modularui@[3.1.6,);after:buildcraftlib;after:quarryplus", acceptedMinecraftVersions = "[1.12.2]")
+@Mod(modid = Marker.modID, name = Marker.ModName, version = MarkerTags.VERSION, dependencies = "required-after:cleanroom@[0.7.14-alpha,);required-after:modularui@[3.1.6,);after:buildcraftlib;after:quarryplus", acceptedMinecraftVersions = "[1.12.2]")
 public class Marker {
+
     public static final String modID = MarkerTags.MOD_ID;
     public static final String ModName = MarkerTags.MOD_NAME;
     public static final String NETWORK_CHANNEL = "FlexibleMarker";

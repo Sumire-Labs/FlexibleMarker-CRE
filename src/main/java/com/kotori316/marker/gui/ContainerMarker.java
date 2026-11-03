@@ -28,4 +28,5 @@ public class ContainerMarker extends Container {
     public ItemStack transferStackInSlot(EntityPlayer playerIn, int index) {
         return ItemStack.EMPTY;
     }
+
 }

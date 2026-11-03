@@ -1,85 +1,60 @@
 repositories {
+    // CleanroomGradle supplies CleanroomMC, Mojang and Maven Central.
+    maven { name = 'CurseMaven'; url = 'https://cursemaven.com' }
+    maven { name = 'CleanroomCurseMaven'; url = 'https://curse.cleanroommc.com' }
+    maven { name = 'Modrinth'; url = 'https://api.modrinth.com/maven' }
+    maven { name = 'BuildCraft'; url = 'https://mod-buildcraft.com/maven' }
+    exclusiveContent {
+        forRepository { maven { name = 'CleanroomHEI'; url = 'https://maven.cleanroommc.com' } }
+        filter { includeGroup 'mezz' }
+    }
+    if (providers.gradleProperty('cg.repos.enableLocal').orElse('false').get().toBoolean()) mavenLocal()
     if (providers.gradleProperty('quarryplus_dev_jar').isPresent()) {
-        // A flat-dir module is discoverable by Unimined, unlike a bare files() dependency.
         flatDir { dirs file(providers.gradleProperty('quarryplus_dev_jar').get()).parentFile }
     }
-    // Other repositories described by default:
-    // CleanroomMC: https://maven.cleanroommc.com
-    maven {
-        name = 'CurseMaven'
-        url = 'https://cursemaven.com'
-    }
-    maven {
-        name = 'CleanroomCurseMaven'
-        url = 'https://curse.cleanroommc.com'
-    }
-    maven {
-        name = 'Modrinth'
-        url = 'https://api.modrinth.com/maven'
-    }
-    maven { name = 'BuildCraft'; url = 'https://mod-buildcraft.com/maven' }
-    mavenCentral()
-    mavenLocal() // Must be last for caching to work
 }
 
 dependencies {
-    if (enable_lwjglx.toBoolean()) {
-        compileOnly "com.cleanroommc:lwjglx:1.0.0"
-    }
-
-    // Remap the distribution, including its access transformer, for stable MCP 39.
-    modImplementation 'mezz:jei:4.35.0@jar'
-    // Original CleanroomMC ModularUI; optional integration APIs are compile-only.
-    modImplementation('com.cleanroommc:modularui:3.1.6') { transitive = false }
-    modCompileOnly('curse.maven:inventory-bogosorter-632327:7412409') { transitive = false }
-    modCompileOnly('curse.maven:neverenoughanimation-1062347:6533650') { transitive = false }
-    // Both integrations remain optional at runtime; standalone mode exercises their absence.
+    implementation deobf('mezz:jei:4.35.0@jar')
+    implementation(deobf('com.cleanroommc:modularui:3.1.6')) { transitive = false }
+    compileOnly(deobf('curse.maven:inventory-bogosorter-632327:7412409')) { transitive = false }
+    compileOnly(deobf('curse.maven:neverenoughanimation-1062347:6533650')) { transitive = false }
+    // Both machine integrations remain optional. Standalone runs omit BuildCraft too.
     if (providers.gradleProperty('marker_standalone').getOrElse('false').toBoolean()) {
-        modCompileOnly 'com.mod-buildcraft:buildcraft-main:7.99.24.7'
+        compileOnly deobf('com.mod-buildcraft:buildcraft-main:7.99.24.7')
     } else {
-        modImplementation 'com.mod-buildcraft:buildcraft-main:7.99.24.7'
+        implementation deobf('com.mod-buildcraft:buildcraft-main:7.99.24.7')
     }
-    modCompileOnly('curse.maven:additional-enchanted-miner-282837:3851282') {
-        transitive = false
-    }
-    // Supply a remapped Rescaled distribution JAR to test its optional IMarker integration.
+    compileOnly(deobf('curse.maven:additional-enchanted-miner-282837:3851282')) { transitive = false }
+    // Optional SRG distribution for testing QuarryPlus-Rescaled's IMarker integration.
     if (providers.gradleProperty('quarryplus_dev_jar').isPresent()) {
-        modRuntimeOnly(group: 'local.integration', name: file(providers.gradleProperty('quarryplus_dev_jar').get()).name.replaceFirst(/\.jar$/, ''), version: '1', ext: 'jar')
-        // The Java-only build has no Scala plugin to supply Rescaled's development stdlib.
+        def localJar = file(providers.gradleProperty('quarryplus_dev_jar').get())
+        runtimeOnly deobf("local.integration:${localJar.name.replaceFirst(/\.jar$/, '')}:1@jar")
         runtimeOnly 'org.scala-lang:scala-library:3.9.0'
-        modRuntimeOnly('curse.maven:scalar-1012168:8800375') { transitive = false }
+        runtimeOnly(deobf('curse.maven:scalar-1012168:8800375')) { transitive = false }
     }
+}
 
-    // Example - Dependency descriptor:
-    // 'com.google.code.gson:gson:2.8.6' << group: com.google.code.gson, name:gson, version:2.8.6
-    // 'group:name:version:classifier' where classifier is optional
+// Geometry regression tests need Minecraft and the same remapped APIs as the Mod.
+sourceSets.test {
+    compileClasspath += sourceSets.main.compileClasspath
+    runtimeClasspath += sourceSets.main.runtimeClasspath + sourceSets.main.compileClasspath
+}
 
-    // Example - CurseMaven dependencies:
-    // 'curse.maven:had-enough-items-557549:4543375' << had-enough-items = project slug, 557549 = project id, 4543375 = file id
-    // Full documentation: https://cursemaven.com/
-
-    // Example - Modrinth dependencies:
-    // 'maven.modrinth:jei:4.16.1.1000' << jei = project name, 4.16.1.1000 = file version
-    // Full documentation: https://docs.modrinth.com/docs/tutorials/maven/
-
-    // Common dependency types (configuration):
-    // implementation = dependency available at both compile time and runtime
-    // runtimeOnly = runtime dependency
-    // compileOnly = compile time dependency
-    // annotationProcessor = annotation processing dependencies
-    // contain = bundle dependency jars into final artifact, will extract them in mod loading. Can be used it as jar-in-jar
-    // shadow = bundle dependencies into shadow output artifact (relocation configurable in shadowJar task)
-    // modImplementation = mod dependency available at both compile time and runtime
-    // modDevImplementation = like modImplementation, but without refmapping
-    // modCompileOnly = mod dependency available only at compile time
-    // modRuntimeOnly = mod dependency available only at runtime
-    // modLibrary = won't be remap but will be forced injected into classpath later
-
-    // Transitive dependencies:
-    // (Dependencies that your dependency depends on)
-    // If you wish to exclude transitive dependencies in the described dependencies
-    // Use a closure as such:
-    // implementation ('com.google.code.gson:gson:2.8.6') {
-    //     transitive = false
-    // }
+// The old signed QuarryPlus jar retains obsolete signatures after SRG-to-MCP remapping.
+// JUnit uses the normal JVM classloader, so extract a test-only copy without signing metadata.
+// The original dependency, game runtime and distributable are left untouched.
+if (enable_junit_testing.toBoolean()) {
+    def quarryTestApi = sourceSets.main.compileClasspath.filter {
+        it.name.contains('additional-enchanted-miner-282837') && it.name.endsWith('.jar')
+    }
+    def prepareQuarryTestApi = tasks.register('prepareQuarryTestApi', Sync) {
+        from({ quarryTestApi.collect { zipTree(it) } })
+        exclude 'META-INF/**'
+        into layout.buildDirectory.dir('test-integration-api/quarryplus')
+    }
+    tasks.named('test') {
+        dependsOn prepareQuarryTestApi
+        classpath = classpath.minus(quarryTestApi).plus(files(prepareQuarryTestApi.map { it.destinationDir }))
+    }
 }

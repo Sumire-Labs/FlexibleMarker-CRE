@@ -3,6 +3,9 @@ package com.kotori316.marker;
 import java.util.Optional;
 
 import javax.annotation.Nullable;
+
+import com.kotori316.marker.gui.GuiHandler;
+
 import net.minecraft.block.Block;
 import net.minecraft.block.ITileEntityProvider;
 import net.minecraft.block.material.Material;
@@ -23,9 +26,8 @@ import net.minecraft.world.World;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
-import com.kotori316.marker.gui.GuiHandler;
-
 public abstract class BlockMarker extends Block implements ITileEntityProvider {
+
     private static final AxisAlignedBB STANDING_AABB = new AxisAlignedBB(.35, 0, .35, .65, .65, .65);
 
     public final ItemBlock itemBlock;
@@ -42,7 +44,7 @@ public abstract class BlockMarker extends Block implements ITileEntityProvider {
 
     @Override
     public boolean onBlockActivated(World worldIn, BlockPos pos, IBlockState state, EntityPlayer playerIn,
-                                    EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ) {
+        EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ) {
         if (!playerIn.isSneaking()) {
             return openGUI(worldIn, pos, playerIn);
         }
@@ -72,7 +74,8 @@ public abstract class BlockMarker extends Block implements ITileEntityProvider {
     @Override
     @SuppressWarnings("deprecation")
     @SideOnly(Side.CLIENT)
-    public boolean shouldSideBeRendered(IBlockState blockState, IBlockAccess blockAccess, BlockPos pos, EnumFacing side) {
+    public boolean shouldSideBeRendered(IBlockState blockState, IBlockAccess blockAccess, BlockPos pos,
+        EnumFacing side) {
         return true;
     }
 
@@ -113,7 +116,8 @@ public abstract class BlockMarker extends Block implements ITileEntityProvider {
     }
 
     @Override
-    public abstract void onBlockPlacedBy(World worldIn, BlockPos pos, IBlockState state, EntityLivingBase placer, ItemStack stack);
+    public abstract void onBlockPlacedBy(World worldIn, BlockPos pos, IBlockState state, EntityLivingBase placer,
+        ItemStack stack);
 
     @Override
     public abstract TileEntity createNewTileEntity(World worldIn, int meta);
@@ -136,12 +140,16 @@ public abstract class BlockMarker extends Block implements ITileEntityProvider {
         }
 
         @Override
-        public void onBlockPlacedBy(World worldIn, BlockPos pos, IBlockState state, EntityLivingBase placer, ItemStack stack) {
-            Optional.ofNullable((TileFlexMarker) worldIn.getTileEntity(pos)).ifPresent(t -> t.init(EnumFacing.fromAngle(placer.getRotationYawHead())));
+        public void onBlockPlacedBy(World worldIn, BlockPos pos, IBlockState state, EntityLivingBase placer,
+            ItemStack stack) {
+            Optional.ofNullable((TileFlexMarker) worldIn.getTileEntity(pos))
+                .ifPresent(t -> t.init(EnumFacing.fromAngle(placer.getRotationYawHead())));
         }
+
     }
 
     public static class Block16Marker extends BlockMarker {
+
         private static final Range RANGE = new Range(0, 360);
 
         public Block16Marker() {
@@ -155,10 +163,15 @@ public abstract class BlockMarker extends Block implements ITileEntityProvider {
         }
 
         @Override
-        public void onBlockPlacedBy(World worldIn, BlockPos pos, IBlockState state, EntityLivingBase placer, ItemStack stack) {
+        public void onBlockPlacedBy(World worldIn, BlockPos pos, IBlockState state, EntityLivingBase placer,
+            ItemStack stack) {
             float angle = RANGE.convert(placer.getRotationYawHead());
-            EnumFacing.AxisDirection z = angle < 90 || angle >= 270 ? EnumFacing.AxisDirection.POSITIVE : EnumFacing.AxisDirection.NEGATIVE;
-            EnumFacing.AxisDirection x = angle > 180 ? EnumFacing.AxisDirection.POSITIVE : EnumFacing.AxisDirection.NEGATIVE;
+            EnumFacing.AxisDirection z = angle < 90 || angle >= 270
+                ? EnumFacing.AxisDirection.POSITIVE
+                : EnumFacing.AxisDirection.NEGATIVE;
+            EnumFacing.AxisDirection x = angle > 180
+                ? EnumFacing.AxisDirection.POSITIVE
+                : EnumFacing.AxisDirection.NEGATIVE;
             Optional.ofNullable((Tile16Marker) worldIn.getTileEntity(pos)).ifPresent(t -> t.init(x, z));
         }
 
@@ -166,5 +179,7 @@ public abstract class BlockMarker extends Block implements ITileEntityProvider {
         public TileEntity createNewTileEntity(World worldIn, int meta) {
             return new Tile16Marker();
         }
+
     }
+
 }

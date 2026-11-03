@@ -3,12 +3,13 @@ package com.kotori316.marker;
 import java.util.Arrays;
 import java.util.Objects;
 
+import com.kotori316.marker.render.Box;
+
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 
-import com.kotori316.marker.render.Box;
-
 public interface IAreaConfigurable {
+
     Runnable setMinMax(BlockPos min, BlockPos max);
 
     double a = 0.5d, b = 10d / 16d, c = 6d / 16d;
@@ -61,5 +62,7 @@ public interface IAreaConfigurable {
                 .map(range -> Box.apply(range, 1d / 8d, 1d / 8d, 1d / 8d, false, false))
                 .toArray(Box[]::new);
         }
+
     }
+
 }

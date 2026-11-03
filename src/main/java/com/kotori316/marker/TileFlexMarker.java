@@ -6,11 +6,11 @@ import java.util.Locale;
 import java.util.Optional;
 import java.util.function.UnaryOperator;
 
-import buildcraft.api.tiles.IDebuggable;
-import buildcraft.api.tiles.ITileAreaProvider;
-import buildcraft.api.tiles.TilesAPI;
-import com.yogpc.qp.tile.IMarker;
 import javax.annotation.Nullable;
+
+import com.kotori316.marker.render.Box;
+import com.yogpc.qp.tile.IMarker;
+
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
@@ -24,7 +24,9 @@ import net.minecraftforge.fml.common.Loader;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
-import com.kotori316.marker.render.Box;
+import buildcraft.api.tiles.IDebuggable;
+import buildcraft.api.tiles.ITileAreaProvider;
+import buildcraft.api.tiles.TilesAPI;
 
 @net.minecraftforge.fml.common.Optional.Interface(modid = TileFlexMarker.BC_TILE_ID, iface = "buildcraft.api.tiles.ITileAreaProvider")
 @net.minecraftforge.fml.common.Optional.Interface(modid = TileFlexMarker.BC_TILE_ID, iface = "buildcraft.api.tiles.IDebuggable")
@@ -36,10 +38,8 @@ public class TileFlexMarker extends TileEntity implements ITileAreaProvider, IDe
 
     private BlockPos min = BlockPos.ORIGIN;
     private BlockPos max = BlockPos.ORIGIN;
-    @Nullable
-    public Box[] boxes;
-    @Nullable
-    public Box directionBox;
+    @Nullable public Box[] boxes;
+    @Nullable public Box directionBox;
     public EnumFacing direction;
     private boolean bcLoaded = Loader.isModLoaded(BC_TILE_ID); // ModAPIManager.INSTANCE.hasAPI("buildcraftapi_tiles");
 
@@ -101,7 +101,8 @@ public class TileFlexMarker extends TileEntity implements ITileAreaProvider, IDe
             bb = new AxisAlignedBB(getPos().getX() + a, getPos().getY() + a, getPos().getZ() - c + a,
                 getPos().getX() + a, getPos().getY() + a, getPos().getZ() + c + a);
         }
-        directionBox = Box.apply(bb.offset(new Vec3d(direction.getDirectionVec()).scale(a)), 1d / 8d, 1d / 8d, 1d / 8d, true, true);
+        directionBox = Box.apply(bb.offset(new Vec3d(direction.getDirectionVec()).scale(a)), 1d / 8d, 1d / 8d, 1d / 8d,
+            true, true);
     }
 
     @Override
@@ -216,11 +217,9 @@ public class TileFlexMarker extends TileEntity implements ITileAreaProvider, IDe
     }
 
     public enum Movable {
-        UP(facing -> EnumFacing.UP),
-        LEFT(EnumFacing::rotateYCCW),
-        FORWARD(UnaryOperator.identity()),
-        RIGHT(EnumFacing::rotateY),
-        DOWN(facing -> EnumFacing.DOWN);
+
+        UP(facing -> EnumFacing.UP), LEFT(EnumFacing::rotateYCCW), FORWARD(UnaryOperator.identity()), RIGHT(
+            EnumFacing::rotateY), DOWN(facing -> EnumFacing.DOWN);
 
         private UnaryOperator<EnumFacing> operator;
         public final String transName;
@@ -246,18 +245,21 @@ public class TileFlexMarker extends TileEntity implements ITileAreaProvider, IDe
 
         public int distanceFromOrigin(BlockPos origin, BlockPos areaMin, BlockPos areaMax, EnumFacing facing) {
             EnumFacing actualFacing = getActualFacing(facing);
-            BlockPos relative = actualFacing.getAxisDirection() == EnumFacing.AxisDirection.POSITIVE ? areaMax : areaMin;
+            BlockPos relative = actualFacing.getAxisDirection() == EnumFacing.AxisDirection.POSITIVE
+                ? areaMax
+                : areaMin;
             return Math.abs(getDistance(origin, relative, actualFacing.getAxis()));
         }
+
     }
 
     public static int getDistance(BlockPos to, BlockPos from, EnumFacing.Axis axis) {
         switch (axis) {
-            case X:
+            case X :
                 return to.getX() - from.getX();
-            case Y:
+            case Y :
                 return to.getY() - from.getY();
-            case Z:
+            case Z :
                 return to.getZ() - from.getZ();
         }
         throw new IllegalStateException(String.format("Other axis? Axis=%s, from=%s, to=%s", axis, from, to));
@@ -265,13 +267,15 @@ public class TileFlexMarker extends TileEntity implements ITileAreaProvider, IDe
 
     public static BlockPos getLimited(BlockPos to, BlockPos from, EnumFacing facing, int limit) {
         switch (facing.getAxis()) {
-            case X:
+            case X :
                 return new BlockPos(from.getX(), to.getY(), to.getZ()).offset(facing, limit);
-            case Y:
+            case Y :
                 return new BlockPos(to.getX(), from.getY(), to.getZ()).offset(facing, limit);
-            case Z:
+            case Z :
                 return new BlockPos(to.getX(), to.getY(), from.getZ()).offset(facing, limit);
         }
-        throw new IllegalStateException(String.format("Other axis? Facing=%s, from=%s, to=%s, limit=%d", facing, from, to, limit));
+        throw new IllegalStateException(
+            String.format("Other axis? Facing=%s, from=%s, to=%s, limit=%d", facing, from, to, limit));
     }
+
 }

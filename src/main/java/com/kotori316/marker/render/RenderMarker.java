@@ -1,5 +1,8 @@
 package com.kotori316.marker.render;
 
+import com.kotori316.marker.Marker;
+import com.kotori316.marker.TileFlexMarker;
+
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
@@ -10,10 +13,8 @@ import net.minecraftforge.client.model.animation.FastTESR;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
-import com.kotori316.marker.Marker;
-import com.kotori316.marker.TileFlexMarker;
-
 public class RenderMarker extends FastTESR<TileFlexMarker> {
+
     private static RenderMarker ourInstance = new RenderMarker();
     public TextureAtlasSprite spriteRed, spriteBlue;
 
@@ -27,7 +28,7 @@ public class RenderMarker extends FastTESR<TileFlexMarker> {
 
     @Override
     public void renderTileEntityFast(TileFlexMarker te, double x, double y, double z,
-                                     float partialTicks, int destroyStage, float partial, BufferBuilder buffer) {
+        float partialTicks, int destroyStage, float partial, BufferBuilder buffer) {
         Minecraft.getMinecraft().profiler.startSection("marker");
         BlockPos pos = te.getPos();
         buffer.setTranslation(x - pos.getX(), y - pos.getY(), z - pos.getZ());
@@ -52,4 +53,5 @@ public class RenderMarker extends FastTESR<TileFlexMarker> {
     public boolean isGlobalRenderer(TileFlexMarker te) {
         return true;
     }
+
 }

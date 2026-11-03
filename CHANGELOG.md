@@ -1,3 +1,9 @@
+## 3.1.0
+
+- Migrated the build, development runs, CI, and publishing to CleanroomDevEnv and CleanroomGradle.
+- Raised the minimum Cleanroom version to 0.7.14-alpha.
+- Enabled the template's Spotless formatting and import checks.
+
 ## 3.0.1
 
 - Update Mod icon

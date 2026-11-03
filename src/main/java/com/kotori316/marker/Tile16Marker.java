@@ -4,11 +4,11 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
-import buildcraft.api.tiles.IDebuggable;
-import buildcraft.api.tiles.ITileAreaProvider;
-import buildcraft.api.tiles.TilesAPI;
-import com.yogpc.qp.tile.IMarker;
 import javax.annotation.Nullable;
+
+import com.kotori316.marker.render.Box;
+import com.yogpc.qp.tile.IMarker;
+
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
@@ -21,7 +21,9 @@ import net.minecraftforge.fml.common.Loader;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
-import com.kotori316.marker.render.Box;
+import buildcraft.api.tiles.IDebuggable;
+import buildcraft.api.tiles.ITileAreaProvider;
+import buildcraft.api.tiles.TilesAPI;
 
 import static com.kotori316.marker.TileFlexMarker.BC_TILE_ID;
 
@@ -29,12 +31,13 @@ import static com.kotori316.marker.TileFlexMarker.BC_TILE_ID;
 @net.minecraftforge.fml.common.Optional.Interface(modid = TileFlexMarker.BC_TILE_ID, iface = "buildcraft.api.tiles.IDebuggable")
 @net.minecraftforge.fml.common.Optional.Interface(modid = "quarryplus", iface = "com.yogpc.qp.tile.IMarker")
 public class Tile16Marker extends TileEntity implements ITileAreaProvider, IDebuggable, IMarker, IAreaConfigurable {
+
     private BlockPos min = BlockPos.ORIGIN;
     private BlockPos max = BlockPos.ORIGIN;
-    @Nullable
-    public Box[] boxes;
+    @Nullable public Box[] boxes;
     private boolean bcLoaded = Loader.isModLoaded(BC_TILE_ID);
-    private EnumFacing.AxisDirection xDirection = EnumFacing.AxisDirection.NEGATIVE, zDirection = EnumFacing.AxisDirection.POSITIVE;
+    private EnumFacing.AxisDirection xDirection = EnumFacing.AxisDirection.NEGATIVE,
+        zDirection = EnumFacing.AxisDirection.POSITIVE;
     private int size = 16;
 
     public void init(EnumFacing.AxisDirection xDirection, EnumFacing.AxisDirection zDirection) {
@@ -69,7 +72,9 @@ public class Tile16Marker extends TileEntity implements ITileAreaProvider, IDebu
     }
 
     /** Common-side accessor for server-authoritative UI synchronization. */
-    public int getConfiguredSize() { return size; }
+    public int getConfiguredSize() {
+        return size;
+    }
 
     // TileEntity overrides
     @Override
@@ -159,7 +164,8 @@ public class Tile16Marker extends TileEntity implements ITileAreaProvider, IDebu
     public void getDebugInfo(List<String> left, List<String> right, EnumFacing side) {
         String[] strings = {
             "Pos: x=" + pos.getX() + " y=" + pos.getY() + " z=" + pos.getZ(),
-            "Facing: " + (xDirection == null ? "Unknown" : EnumFacing.getFacingFromAxis(xDirection, EnumFacing.Axis.X)) +
+            "Facing: " + (xDirection == null ? "Unknown" : EnumFacing.getFacingFromAxis(xDirection, EnumFacing.Axis.X))
+                +
                 ", " + (zDirection == null ? "Unknown" : EnumFacing.getFacingFromAxis(zDirection, EnumFacing.Axis.Z)),
             "Min: x=" + min.getX() + " y=" + min.getY() + " z=" + min.getZ(),
             "Max: x=" + max.getX() + " y=" + max.getY() + " z=" + max.getZ(),
@@ -197,4 +203,5 @@ public class Tile16Marker extends TileEntity implements ITileAreaProvider, IDebu
             size = (max.getX() - min.getX() - 1);
         };
     }
+
 }

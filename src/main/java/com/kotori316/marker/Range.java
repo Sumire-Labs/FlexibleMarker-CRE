@@ -1,6 +1,7 @@
 package com.kotori316.marker;
 
 public class Range {
+
     private final float min;
     private final float max;
     private final float distance;
@@ -35,4 +36,5 @@ public class Range {
         System.out.printf("convert of -4 is %f.\n", range.convert(-4));
         System.out.printf("convert of -5 is %f.\n", range.convert(-5));
     }
+
 }

@@ -1,6 +1,10 @@
 package com.kotori316.marker.gui;
 
 import javax.annotation.Nullable;
+
+import com.kotori316.marker.Tile16Marker;
+import com.kotori316.marker.TileFlexMarker;
+
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.Container;
@@ -10,9 +14,6 @@ import net.minecraft.world.World;
 import net.minecraftforge.fml.common.network.IGuiHandler;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
-
-import com.kotori316.marker.Tile16Marker;
-import com.kotori316.marker.TileFlexMarker;
 
 public class GuiHandler implements IGuiHandler {
 
@@ -43,4 +44,5 @@ public class GuiHandler implements IGuiHandler {
         }
         return null;
     }
+
 }

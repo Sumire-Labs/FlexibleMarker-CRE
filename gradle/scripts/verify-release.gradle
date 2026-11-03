@@ -1,11 +1,13 @@
-// Validate the remapped distribution rather than the development-classifier JAR.
-def distribution = tasks.named(enable_shadow.toBoolean() ? 'remapShadowJar' : 'remapJar')
+// Validate the SRG distribution produced by CleanroomGradle.
+def distribution = tasks.named('reobfJar')
 def expectedVersion = versioning.version
 tasks.register('verifyReleaseJar') {
     group = 'verification'
     dependsOn(distribution)
+    inputs.file(distribution.flatMap { it.output })
+    inputs.property('modVersion', expectedVersion)
     doLast {
-        def archive = distribution.get().archiveFile.get().asFile
+        def archive = inputs.files.singleFile
         new java.util.zip.ZipFile(archive).withCloseable { zip ->
             def read = { String name ->
                 def entry = zip.getEntry(name)
@@ -14,7 +16,7 @@ tasks.register('verifyReleaseJar') {
             }
             def metadataText = new String(read('mcmod.info'), 'UTF-8')
             def metadata = new groovy.json.JsonSlurper().parseText(metadataText)[0]
-            if (metadata.modid != 'flexiblemarker' || metadata.version != expectedVersion.get()
+            if (metadata.modid != 'flexiblemarker' || metadata.version != inputs.properties.modVersion
                     || metadataText.contains('@{') || metadataText.contains('\${version}'))
                 throw new GradleException('Incorrect or unresolved release metadata')
             def manifest = new java.util.jar.Manifest(new ByteArrayInputStream(read('META-INF/MANIFEST.MF')))
@@ -24,14 +26,20 @@ tasks.register('verifyReleaseJar') {
             read('com/sumirelabs/flexiblemarker/gui/mui/MarkerGuiFactory.class')
             if (!metadata.dependencies.contains('modularui'))
                 throw new GradleException('ModularUI must be declared as a dependency')
+            if (metadata.logoFile != 'logo.png') throw new GradleException('Missing Mod icon metadata')
+            read('logo.png')
+            read('META-INF/LICENSE.md')
+            read('META-INF/licenses/CleanroomDevEnv-MIT.txt')
             if (zip.entries().any { it.name.startsWith('scala/') || it.name.endsWith('.scala') || it.name.endsWith('.tasty') })
                 throw new GradleException('Scala runtime or sources unexpectedly bundled in the distribution')
             zip.entries().findAll { it.name.endsWith('.class') }.each { entry ->
                 def data = new String(read(entry.name), java.nio.charset.StandardCharsets.ISO_8859_1)
-                if (data.contains('scala/') || data.contains('@{mod_') || data.contains('\${version}'))
+                if (data.contains('scala/') || data.contains('@{') || data.contains('\${version}'))
                     throw new GradleException("Unexpected Scala dependency or token in ${entry.name}")
             }
         }
         logger.lifecycle("Verified Scala-free Cleanroom JAR: ${archive.name}")
     }
 }
+
+tasks.named('check') { dependsOn tasks.named('verifyReleaseJar') }

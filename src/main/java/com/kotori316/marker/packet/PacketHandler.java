@@ -2,15 +2,16 @@ package com.kotori316.marker.packet;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.kotori316.marker.Marker;
+
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraftforge.fml.common.network.NetworkRegistry;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 import net.minecraftforge.fml.common.network.simpleimpl.SimpleNetworkWrapper;
 import net.minecraftforge.fml.relauncher.Side;
-import net.minecraft.entity.player.EntityPlayerMP;
-
-import com.kotori316.marker.Marker;
 
 public class PacketHandler {
+
     private static SimpleNetworkWrapper wrapper;
 
     public static void init() {
@@ -28,4 +29,5 @@ public class PacketHandler {
     public static void sendToClient(IMessage message, EntityPlayerMP player) {
         wrapper.sendTo(message, player);
     }
+
 }

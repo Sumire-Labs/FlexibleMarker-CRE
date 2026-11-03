@@ -3,6 +3,7 @@ package com.kotori316.marker.render;
 import net.minecraft.client.renderer.BufferBuilder;
 
 final class Buffer {
+
     private final BufferBuilder bufferBuilder;
 
     Buffer(BufferBuilder bufferBuilder) {
@@ -44,4 +45,5 @@ final class Buffer {
     final boolean bufferEq(BufferBuilder builder) {
         return bufferBuilder == builder;
     }
+
 }

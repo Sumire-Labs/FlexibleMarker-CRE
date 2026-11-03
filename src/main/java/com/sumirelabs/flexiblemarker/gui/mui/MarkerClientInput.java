@@ -7,10 +7,12 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 
 @SideOnly(Side.CLIENT)
 final class MarkerClientInput {
+
     private MarkerClientInput() {}
     static void write(PacketBuffer buffer, int mouseButton) {
         buffer.writeInt(mouseButton);
         buffer.writeBoolean(GuiScreen.isShiftKeyDown());
         buffer.writeBoolean(GuiScreen.isCtrlKeyDown());
     }
+
 }
