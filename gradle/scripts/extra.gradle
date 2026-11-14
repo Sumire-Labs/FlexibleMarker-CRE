@@ -1,2 +1,0 @@
-// Project-specific distribution checks supplement the template's verifyModJar.
-apply from: 'gradle/scripts/verify-release.gradle'

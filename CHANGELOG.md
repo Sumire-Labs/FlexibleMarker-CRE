@@ -1,5 +1,8 @@
 ## Unreleased
 
+- Updated CleanroomDevEnv to a7f3735, migrating the build scripts to Kotlin DSL and enabling configuration caching.
+- Updated release-note generation to use the tagged version's CHANGELOG section.
+
 - Required a matching open marker GUI for legacy edit packets and closed stale legacy containers.
 - Kept GUI access bound to its original world across dimension changes.
 - Replaced recursive angle wrapping to handle extreme rotations safely.

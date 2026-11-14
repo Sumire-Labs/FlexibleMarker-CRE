@@ -36,9 +36,10 @@ Useful for chunk-aligned mining and clearing larger areas.
 ## Development
 
 The build uses [CleanroomDevEnv](https://github.com/Sumire-Labs/CleanroomDevEnv)
-at `a1de7076029f830cb20b81afbbe613a68ff5fda1`, with CleanroomGradle and Java 25.
+at `a7f3735ce867457d19b8bb0de4a47c3849ed84f7`, with Kotlin DSL, CleanroomGradle and Java 25.
 
 - `./gradlew spotlessApply` applies the template's import order and Eclipse Java formatting.
+  Formatting settings are in `gradle/spotless/`.
 - `./gradlew clean build` runs tests, formatting checks, and both distribution JAR checks.
 - `./gradlew runClient` and `./gradlew runServer` launch the development environment.
 - `./gradlew runClient -Pmarker_standalone=true` omits the optional BuildCraft runtime integration.
@@ -53,6 +54,9 @@ Release publishing uses the template's workflow and can be enabled with
 `curseforge_project_id`, `modrinth_project_id`, or the Maven properties in `gradle.properties`.
 Existing `CURSEFORGE_PROJECT_ID` / `MODRINTH_PROJECT_ID` repository variables are also supported.
 See [.github/RENOVATE.md](.github/RENOVATE.md) for optional Renovate setup.
+Project dependencies are configured in `gradle/scripts/dependencies.gradle.kts`.
+The build enables Gradle's configuration cache; run the same command twice to check cache reuse.
+Releases use the matching version section from `CHANGELOG.md` for their release notes.
 
 ## License
 
