@@ -38,8 +38,8 @@ public class TileFlexMarker extends TileEntity implements ITileAreaProvider, IDe
     public static final String BC_CORE_ID = "buildcraftlib"; // BuildCraftAPI|core - buildcraftapi_core
     public static final String BC_TILE_ID = "buildcraftlib"; // BuildCraftAPI|tiles - buildcraftapi_tiles
 
-    private BlockPos min = BlockPos.ORIGIN;
-    private BlockPos max = BlockPos.ORIGIN;
+    @Nullable private BlockPos min;
+    @Nullable private BlockPos max;
     @Nullable public Box[] boxes;
     @Nullable public Box directionBox;
     public EnumFacing direction = EnumFacing.NORTH;
@@ -61,7 +61,7 @@ public class TileFlexMarker extends TileEntity implements ITileAreaProvider, IDe
         EnumFacing facing = movable.getActualFacing(direction);
         BlockPos offset = getPos();
         if (facing.getAxisDirection() == EnumFacing.AxisDirection.POSITIVE) {
-            max = max.offset(facing, amount);
+            max = max().offset(facing, amount);
             int d = getDistance(max, offset, facing.getAxis());
             if (d > 64) {
                 max = getLimited(max, offset, facing, 64);
@@ -69,7 +69,7 @@ public class TileFlexMarker extends TileEntity implements ITileAreaProvider, IDe
                 max = getLimited(max, offset, facing, 1);
             }
         } else {
-            min = min.offset(facing, amount);
+            min = min().offset(facing, amount);
             int d = getDistance(offset, min, facing.getAxis());
             if (d > 64) {
                 min = getLimited(min, offset, facing, 64);
@@ -95,7 +95,7 @@ public class TileFlexMarker extends TileEntity implements ITileAreaProvider, IDe
     private void setRender() {
         if (world == null || !world.isRemote)
             return;
-        boxes = IAreaConfigurable.Util.getRenderBox(this.min, this.max);
+        boxes = IAreaConfigurable.Util.getRenderBox(min(), max());
         AxisAlignedBB bb;
         if (direction.getAxis() == EnumFacing.Axis.X) {
             bb = new AxisAlignedBB(getPos().getX() - c + a, getPos().getY() + a, getPos().getZ() + a,
@@ -110,8 +110,8 @@ public class TileFlexMarker extends TileEntity implements ITileAreaProvider, IDe
 
     @Override
     public NBTTagCompound writeToNBT(NBTTagCompound compound) {
-        compound.setLong("min", min.toLong());
-        compound.setLong("max", max.toLong());
+        compound.setLong("min", min().toLong());
+        compound.setLong("max", max().toLong());
         compound.setString("direction", Optional.ofNullable(direction).map(EnumFacing::toString).orElse(""));
         return super.writeToNBT(compound);
     }
@@ -180,12 +180,12 @@ public class TileFlexMarker extends TileEntity implements ITileAreaProvider, IDe
 
     @Override
     public BlockPos min() {
-        return min == BlockPos.ORIGIN ? getPos() : min;
+        return min == null ? getPos() : min;
     }
 
     @Override
     public BlockPos max() {
-        return max == BlockPos.ORIGIN ? getPos() : max;
+        return max == null ? getPos() : max;
     }
 
     @Override
@@ -215,8 +215,8 @@ public class TileFlexMarker extends TileEntity implements ITileAreaProvider, IDe
         String[] strings = {
             "Pos: x=" + pos.getX() + " y=" + pos.getY() + " z=" + pos.getZ(),
             "Facing: " + (direction == null ? "Unknown" : direction.toString()),
-            "Min: x=" + min.getX() + " y=" + min.getY() + " z=" + min.getZ(),
-            "Max: x=" + max.getX() + " y=" + max.getY() + " z=" + max.getZ(),
+            "Min: x=" + min().getX() + " y=" + min().getY() + " z=" + min().getZ(),
+            "Max: x=" + max().getX() + " y=" + max().getY() + " z=" + max().getZ(),
         };
         left.addAll(Arrays.asList(strings));
     }

@@ -1,5 +1,7 @@
 ## Unreleased
 
+- Preserved fresh marker bounds through saving/synchronization and allowed real boundaries at the world origin.
+
 - Used the build height rather than terrain height so chunk markers work above the Nether roof.
 
 - Updated CleanroomDevEnv to a7f3735, migrating the build scripts to Kotlin DSL and enabling configuration caching.

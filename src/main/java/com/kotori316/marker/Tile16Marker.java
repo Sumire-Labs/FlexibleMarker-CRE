@@ -34,8 +34,8 @@ import static com.kotori316.marker.TileFlexMarker.BC_TILE_ID;
 @net.minecraftforge.fml.common.Optional.Interface(modid = "quarryplus", iface = "com.yogpc.qp.tile.IMarker")
 public class Tile16Marker extends TileEntity implements ITileAreaProvider, IDebuggable, IMarker, IAreaConfigurable {
 
-    private BlockPos min = BlockPos.ORIGIN;
-    private BlockPos max = BlockPos.ORIGIN;
+    @Nullable private BlockPos min;
+    @Nullable private BlockPos max;
     @Nullable public Box[] boxes;
     private boolean bcLoaded = Loader.isModLoaded(BC_TILE_ID);
     private EnumFacing.AxisDirection xDirection = EnumFacing.AxisDirection.NEGATIVE,
@@ -83,7 +83,7 @@ public class Tile16Marker extends TileEntity implements ITileAreaProvider, IDebu
     private void setRender() {
         if (world == null || !world.isRemote)
             return;
-        boxes = IAreaConfigurable.Util.getRenderBox(this.min, this.max);
+        boxes = IAreaConfigurable.Util.getRenderBox(min(), max());
     }
 
     @SideOnly(Side.CLIENT)
@@ -159,8 +159,8 @@ public class Tile16Marker extends TileEntity implements ITileAreaProvider, IDebu
 
     @Override
     public NBTTagCompound writeToNBT(NBTTagCompound compound) {
-        compound.setLong("min", min.toLong());
-        compound.setLong("max", max.toLong());
+        compound.setLong("min", min().toLong());
+        compound.setLong("max", max().toLong());
         compound.setBoolean("x", xDirection == EnumFacing.AxisDirection.POSITIVE);
         compound.setBoolean("z", zDirection == EnumFacing.AxisDirection.POSITIVE);
         compound.setInteger("size", size);
@@ -175,12 +175,12 @@ public class Tile16Marker extends TileEntity implements ITileAreaProvider, IDebu
 
     @Override
     public BlockPos min() {
-        return min == BlockPos.ORIGIN ? getPos() : min;
+        return min == null ? getPos() : min;
     }
 
     @Override
     public BlockPos max() {
-        return max == BlockPos.ORIGIN ? getPos() : max;
+        return max == null ? getPos() : max;
     }
 
     @Override
@@ -212,8 +212,8 @@ public class Tile16Marker extends TileEntity implements ITileAreaProvider, IDebu
             "Facing: " + (xDirection == null ? "Unknown" : EnumFacing.getFacingFromAxis(xDirection, EnumFacing.Axis.X))
                 +
                 ", " + (zDirection == null ? "Unknown" : EnumFacing.getFacingFromAxis(zDirection, EnumFacing.Axis.Z)),
-            "Min: x=" + min.getX() + " y=" + min.getY() + " z=" + min.getZ(),
-            "Max: x=" + max.getX() + " y=" + max.getY() + " z=" + max.getZ(),
+            "Min: x=" + min().getX() + " y=" + min().getY() + " z=" + min().getZ(),
+            "Max: x=" + max().getX() + " y=" + max().getY() + " z=" + max().getZ(),
         };
         left.addAll(Arrays.asList(strings));
     }

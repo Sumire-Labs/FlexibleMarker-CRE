@@ -316,6 +316,7 @@ public final class MarkerSmokeTest {
     }
 
     private static void validateMarkerState(net.minecraft.world.World world) {
+        validateUninitializedMarkers(world);
         NBTTagCompound incomplete = new NBTTagCompound();
         incomplete.setInteger("x", 10);
         incomplete.setInteger("y", 64);
@@ -369,6 +370,24 @@ public final class MarkerSmokeTest {
                 && !MarkerGuiFactory.isOpenFor(player, 0, CHUNK), "Legacy GUI authorized the wrong marker");
         } finally {
             player.openContainer = previous;
+        }
+    }
+
+    private static void validateUninitializedMarkers(net.minecraft.world.World world) {
+        BlockPos origin = new BlockPos(10, 64, 10);
+        for (net.minecraft.tileentity.TileEntity tile : new net.minecraft.tileentity.TileEntity[]{
+            new TileFlexMarker(), new Tile16Marker()}) {
+            tile.setWorld(world);
+            tile.setPos(origin);
+            BlockPos minimum = tile instanceof TileFlexMarker flex ? flex.min() : ((Tile16Marker) tile).min();
+            BlockPos maximum = tile instanceof TileFlexMarker flex ? flex.max() : ((Tile16Marker) tile).max();
+            check(minimum.equals(origin) && maximum.equals(origin), "Fresh marker bounds are not at its position");
+            NBTTagCompound saved = tile.writeToNBT(new NBTTagCompound());
+            check(saved.getLong("min") == minimum.toLong() && saved.getLong("max") == maximum.toLong(),
+                "Saving an uninitialized marker changed its bounds to the world origin");
+            ((IAreaConfigurable) tile).setMinMax(BlockPos.ORIGIN, new BlockPos(17, 64, 17)).run();
+            minimum = tile instanceof TileFlexMarker flex ? flex.min() : ((Tile16Marker) tile).min();
+            check(minimum.equals(BlockPos.ORIGIN), "A real world-origin boundary was mistaken for missing bounds");
         }
     }
 
