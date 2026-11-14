@@ -1,40 +1,59 @@
-## Unreleased
+# Changelog
 
-- Allowed flexible-marker vertical distances to return to zero through buttons and numeric inputs, while keeping horizontal minimum distances.
-- Prevented uninitialized, zero-width, or inverted marker areas from being advertised as usable to mining machines.
+## [Unreleased]
 
-- Restored the shared fast-render buffer's translation after marker rendering, including failed draws.
+## [3.1.0] - 2026-11-14
 
-- Preserved fresh marker bounds through saving/synchronization and allowed real boundaries at the world origin.
+### Added
 
-- Used the build height rather than terrain height so chunk markers work above the Nether roof.
+- English and Japanese labels for the up/down controls.
+- Maven publishing for development (MCP) and runtime (SRG) artifacts.
 
-- Updated CleanroomDevEnv to a7f3735, migrating the build scripts to Kotlin DSL and enabling configuration caching.
-- Updated release-note generation to use the tagged version's CHANGELOG section.
+### Changed
 
-- Required a matching open marker GUI for legacy edit packets and closed stale legacy containers.
-- Kept GUI access bound to its original world across dimension changes.
-- Replaced recursive angle wrapping to handle extreme rotations safely.
+- Requires Cleanroom Loader 0.7.14-alpha or later.
+- Moved the build, development runs, CI, and publishing to CleanroomDevEnv (`a7f3735`) and CleanroomGradle.
+- Converted the Gradle scripts to Kotlin DSL and enabled configuration caching.
+- Enabled Spotless formatting and import checks.
+- Updated Gradle to 9.9.0 and `actions/setup-java` to v6.2.0.
+- Release notes now use the tagged version's section in this changelog.
 
-- Fixed range updates accessing the client world from the network thread.
-- Synchronized range changes to nearby players even when their marker GUI is closed.
-- Bounded range-rendering work for large chunk areas and rejected invalid or out-of-world ranges.
-- Restored safe defaults for incomplete marker NBT and translated the vertical direction labels.
+### Fixed
 
-## 3.1.0
+- Flexible marker up/down distances can return to zero through buttons and numeric inputs. Horizontal distances still have a one-block minimum.
+- Markers with empty, zero-width, or inverted ranges no longer report a usable area to mining machines.
+- Marker rendering clears the shared buffer's coordinate offset after each draw, including failed draws.
+- Fresh markers keep their position-based bounds when saved or synchronized. Valid bounds at the world origin remain intact.
+- Chunk markers can use the Nether's full build height, including above the roof.
+- Legacy edit packets require the matching marker GUI to be open. Stale legacy containers stop accepting edits.
+- Marker GUIs remain bound to their original world after dimension changes.
+- Angle wrapping handles extreme and non-finite rotations without recursion.
+- Range-update packets access the client world on the main thread.
+- Nearby players see range changes even when the marker GUI is closed.
+- Large chunk ranges no longer generate unbounded render vertices. Edits reject invalid sizes, heights, and out-of-world coordinates.
+- Incomplete marker NBT restores safe defaults while preserving saved geometry.
 
-- Migrated the build, development runs, CI, and publishing to CleanroomDevEnv and CleanroomGradle.
-- Raised the minimum Cleanroom version to 0.7.14-alpha.
-- Enabled the template's Spotless formatting and import checks.
+## [3.0.1] - 2026-10-21
 
-## 3.0.1
+### Changed
 
-- Update Mod icon
+- Updated the Mod icon.
 
-## 3.0.0
+## [3.0.0] - 2026-10-13
 
-- Ported the mod to Cleanroom Loader. Standard Forge is no longer supported.
-- Replaced both marker GUIs with CleanroomMC's ModularUI.
-- Ported the Scala rendering code to Java, removing the mod's dependency on Scalar or Scala Legacy.
+### Changed
+
+- Ported Flexible Marker to Cleanroom Loader. Standard Forge is no longer supported.
+- Replaced both marker GUIs with ModularUI.
+- Ported the Scala renderer to Java.
 - Migrated from Java 8 to Java 25.
 - Updated MCP mappings to stable 39-1.12.
+
+### Removed
+
+- Removed the dependency on Scalar or Scala Legacy.
+
+[Unreleased]: https://github.com/Sumire-Labs/FlexibleMarker-CRE/compare/3.1.0...HEAD
+[3.1.0]: https://github.com/Sumire-Labs/FlexibleMarker-CRE/compare/3.0.1...3.1.0
+[3.0.1]: https://github.com/Sumire-Labs/FlexibleMarker-CRE/compare/3.0.0...3.0.1
+[3.0.0]: https://github.com/Sumire-Labs/FlexibleMarker-CRE/releases/tag/3.0.0
