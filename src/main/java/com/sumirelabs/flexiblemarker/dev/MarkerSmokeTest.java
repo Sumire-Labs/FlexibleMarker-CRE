@@ -44,6 +44,7 @@ public final class MarkerSmokeTest {
     private static final Logger LOG = LogManager.getLogger("FlexibleMarkerSmoke");
     private static final BlockPos FLEX = new BlockPos(2, 64, 2), CHUNK = new BlockPos(6, 64, 2);
     private int stage, ticks;
+    private boolean originalPauseOnLostFocus;
     private Future<?> task;
 
     public static void install() {
@@ -63,6 +64,8 @@ public final class MarkerSmokeTest {
                 if (!(mc.currentScreen instanceof GuiMainMenu))
                     return;
                 com.cleanroommc.modularui.ModularUIConfig.guiDebugMode = false;
+                originalPauseOnLostFocus = mc.gameSettings.pauseOnLostFocus;
+                mc.gameSettings.pauseOnLostFocus = false;
                 stage = 1;
                 mc.launchIntegratedServer("flexiblemarker-smoke-" + System.currentTimeMillis(), "Flexible Marker Smoke",
                     new WorldSettings(1, GameType.CREATIVE, false, false, WorldType.FLAT).enableCommands());
@@ -107,6 +110,10 @@ public final class MarkerSmokeTest {
                 check(!MarkerGuiFactory.INSTANCE.canInteractWith(mc.player, new MarkerGuiData(mc.player, FLEX, 1)),
                     "Wrong marker GUI type accepted");
                 screenshot(mc, "world");
+                com.kotori316.marker.packet.PacketHandler.sendToServer(new com.kotori316.marker.packet.ButtonMessage(
+                    FLEX, mc.world.provider.getDimension(), TileFlexMarker.Movable.FORWARD, 1));
+                com.kotori316.marker.packet.PacketHandler.sendToServer(new com.kotori316.marker.packet.Button16Message(
+                    CHUNK, mc.world.provider.getDimension(), 48, 64, 64));
                 task = server.addScheduledTask(() -> {
                     TileFlexMarker flex = (TileFlexMarker) server.getWorld(0).getTileEntity(FLEX);
                     Tile16Marker chunkMarker = (Tile16Marker) server.getWorld(0).getTileEntity(CHUNK);
@@ -121,6 +128,10 @@ public final class MarkerSmokeTest {
                 Tile16Marker chunk = (Tile16Marker) mc.world.getTileEntity(CHUNK);
                 check(TileFlexMarker.Movable.RIGHT.distanceFromOrigin(FLEX, flex.min(), flex.max(), flex.direction) == 6
                     && chunk.getConfiguredSize() == 32, "Range did not synchronize without an open GUI");
+                check(
+                    TileFlexMarker.Movable.FORWARD.distanceFromOrigin(FLEX, flex.min(), flex.max(),
+                        flex.direction) == 10,
+                    "A packet edited a marker without an open GUI");
                 task = server.addScheduledTask(() -> {
                     EntityPlayerMP player = server.getPlayerList().getPlayerByUUID(uuid);
                     TileFlexMarker serverFlex = (TileFlexMarker) player.world.getTileEntity(FLEX);
@@ -129,17 +140,28 @@ public final class MarkerSmokeTest {
                     serverFlex.markDirty();
                     serverChunk.changeSize(16);
                     serverChunk.markDirty();
+                    validateLegacyAccess(player, serverFlex);
                     MarkerGuiFactory.open(player, 0, player.world, FLEX);
                 });
                 next(3);
             } else if (stage == 3 && ticks >= 20 && nativeScreen(mc, 0)) {
                 screenshot(mc, "flexible-gui");
                 check(mc.player.openContainer.inventorySlots.size() == 36, "Unexpected native player slot count");
+                com.kotori316.marker.packet.PacketHandler.sendToServer(new com.kotori316.marker.packet.ButtonMessage(
+                    FLEX, mc.world.provider.getDimension(), TileFlexMarker.Movable.RIGHT, 1));
+                com.kotori316.marker.packet.PacketHandler.sendToServer(new com.kotori316.marker.packet.Button16Message(
+                    CHUNK, mc.world.provider.getDimension(), 48, 64, 64));
                 press(mc, "forward_plus1");
                 next(4);
             } else if (stage == 4 && ticks >= 20) {
                 TileFlexMarker marker = (TileFlexMarker) mc.world.getTileEntity(FLEX);
                 check(marker.min().getZ() == -9, "Flexible marker packet/client sync failed");
+                check(
+                    TileFlexMarker.Movable.RIGHT.distanceFromOrigin(FLEX, marker.min(), marker.max(),
+                        marker.direction) == 6,
+                    "A matching open GUI did not authorize the legacy edit packet");
+                check(((Tile16Marker) mc.world.getTileEntity(CHUNK)).getConfiguredSize() == 16,
+                    "An open GUI authorized a packet for another marker");
                 number(mc, "forward_distance", 99);
                 next(14);
             } else if (stage == 14 && ticks >= 20) {
@@ -236,11 +258,13 @@ public final class MarkerSmokeTest {
                     Loader.isModLoaded("buildcraftlib"), Loader.isModLoaded("quarryplus"),
                     Loader.isModLoaded("scalar"));
                 stage = 9;
+                mc.gameSettings.pauseOnLostFocus = originalPauseOnLostFocus;
                 mc.shutdown();
             }
         } catch (Throwable error) {
             LOG.error("Flexible Marker smoke failed at stage " + stage, error);
             stage = 9;
+            mc.gameSettings.pauseOnLostFocus = originalPauseOnLostFocus;
             mc.shutdown();
         }
     }
@@ -331,6 +355,20 @@ public final class MarkerSmokeTest {
         legacy.setLong("max", legacyMax.toLong());
         restored.readFromNBT(legacy);
         check(restored.max().equals(legacyMax), "Loading old NBT silently replaced the saved range");
+    }
+
+    private static void validateLegacyAccess(EntityPlayerMP player, TileFlexMarker marker) {
+        check(!MarkerGuiFactory.isOpenFor(player, 0, marker.getPos()), "Closed marker GUI was authorized");
+        net.minecraft.inventory.Container previous = player.openContainer;
+        com.kotori316.marker.gui.ContainerMarker legacy = new com.kotori316.marker.gui.ContainerMarker(player, marker);
+        player.openContainer = legacy;
+        try {
+            check(MarkerGuiFactory.isOpenFor(player, 0, marker.getPos()), "Bound legacy GUI was rejected");
+            check(!MarkerGuiFactory.isOpenFor(player, 1, marker.getPos())
+                && !MarkerGuiFactory.isOpenFor(player, 0, CHUNK), "Legacy GUI authorized the wrong marker");
+        } finally {
+            player.openContainer = previous;
+        }
     }
 
     private static void geometry() {

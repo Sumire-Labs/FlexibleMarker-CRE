@@ -1,6 +1,8 @@
 package com.kotori316.marker.packet;
 
 import com.kotori316.marker.TileFlexMarker;
+import com.kotori316.marker.gui.GuiHandler;
+import com.sumirelabs.flexiblemarker.gui.mui.MarkerGuiFactory;
 
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.tileentity.TileEntity;
@@ -52,7 +54,8 @@ public class ButtonMessage implements IMessage {
         player.getServerWorld().addScheduledTask(() -> {
             World world = player.world;
             if (world.provider.getDimension() != message.dim || player.getDistanceSqToCenter(message.pos) > 64
-                || !world.isBlockLoaded(message.pos))
+                || !world.isBlockLoaded(message.pos)
+                || !MarkerGuiFactory.isOpenFor(player, GuiHandler.Marker_ID, message.pos))
                 return;
             TileEntity entity = world.getTileEntity(message.pos);
             if (entity instanceof TileFlexMarker marker) {

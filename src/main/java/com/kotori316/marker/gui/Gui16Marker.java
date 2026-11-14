@@ -22,7 +22,7 @@ public class Gui16Marker extends GuiContainer {
     private static final int BUTTON_WIDTH = 40;
 
     public Gui16Marker(EntityPlayer player, Tile16Marker marker) {
-        super(new ContainerMarker(player));
+        super(new ContainerMarker(player, marker));
         this.marker = marker;
         //217, 188
         this.xSize = 217;

@@ -2,6 +2,7 @@ package com.sumirelabs.flexiblemarker.gui.mui;
 
 import com.cleanroommc.modularui.api.UIFactory;
 import com.cleanroommc.modularui.factory.GuiManager;
+import com.cleanroommc.modularui.screen.ModularContainer;
 import com.cleanroommc.modularui.screen.ModularPanel;
 import com.cleanroommc.modularui.screen.ModularScreen;
 import com.cleanroommc.modularui.screen.UISettings;
@@ -9,6 +10,7 @@ import com.cleanroommc.modularui.value.sync.PanelSyncManager;
 import com.kotori316.marker.Marker;
 import com.kotori316.marker.Tile16Marker;
 import com.kotori316.marker.TileFlexMarker;
+import com.kotori316.marker.gui.ContainerMarker;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -45,12 +47,22 @@ public final class MarkerGuiFactory implements UIFactory<MarkerGuiData> {
     }
     @Override
     public boolean canInteractWith(EntityPlayer player, MarkerGuiData data) {
-        if (player != data.getPlayer() || player.isDead || !player.isEntityAlive()
+        if (player != data.getPlayer() || player.world != data.getWorld() || player.isDead || !player.isEntityAlive()
             || !data.getWorld().isBlockLoaded(data.getBlockPos()) || data.getSquaredDistance(player) > 64)
             return false;
         TileEntity tile = data.getTileEntity();
         return tile != null && !tile.isInvalid()
             && ((data.id == 0 && tile instanceof TileFlexMarker) || (data.id == 1 && tile instanceof Tile16Marker));
+    }
+
+    /** Legacy packets must be authorized by the same open screen as native UI actions. */
+    public static boolean isOpenFor(EntityPlayer player, int id, BlockPos pos) {
+        if (player.openContainer instanceof ContainerMarker legacy)
+            return legacy.isOpenFor(player, id, pos);
+        return player.openContainer instanceof ModularContainer container
+            && container.getGuiData() instanceof MarkerGuiData data
+            && data.id == id && data.getBlockPos().equals(pos)
+            && INSTANCE.canInteractWith(player, data) && container.canInteractWith(player);
     }
     @Override
     public ModularPanel createPanel(MarkerGuiData data, PanelSyncManager sync, UISettings settings) {

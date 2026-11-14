@@ -26,7 +26,7 @@ public class GuiMarker extends GuiContainer {
     private static final int yOffsetBottom = 90;
 
     public GuiMarker(EntityPlayer player, TileFlexMarker marker) {
-        super(new ContainerMarker(player));
+        super(new ContainerMarker(player, marker));
         this.marker = marker;
         //217, 188
         this.xSize = 217;

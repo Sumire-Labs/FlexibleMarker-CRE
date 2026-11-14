@@ -1,6 +1,8 @@
 package com.kotori316.marker.packet;
 
 import com.kotori316.marker.Tile16Marker;
+import com.kotori316.marker.gui.GuiHandler;
+import com.sumirelabs.flexiblemarker.gui.mui.MarkerGuiFactory;
 
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.tileentity.TileEntity;
@@ -57,7 +59,8 @@ public class Button16Message implements IMessage {
             World world = player.world;
             if (world.provider.getDimension() != message.dim || player.getDistanceSqToCenter(message.pos) > 64
                 || !world.isBlockLoaded(message.pos) || message.amount < 16 || message.yMin < 0
-                || message.yMax < message.yMin)
+                || message.yMax < message.yMin
+                || !MarkerGuiFactory.isOpenFor(player, GuiHandler.Marker16_ID, message.pos))
                 return;
             TileEntity entity = world.getTileEntity(message.pos);
             if (entity instanceof Tile16Marker marker

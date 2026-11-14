@@ -9,19 +9,20 @@ public class Range {
     public Range(float min, float max) {
         this.min = min;
         this.max = max;
-        if (max < min) {
-            throw new IllegalArgumentException(String.format("min is grater than max. Min: %f, Max:%f", min, max));
+        if (!Float.isFinite(min) || !Float.isFinite(max) || max <= min || !Float.isFinite(max - min)) {
+            throw new IllegalArgumentException(String.format("Invalid range. Min: %f, Max: %f", min, max));
         }
         this.distance = max - min;
     }
 
     public float convert(float f) {
+        if (!Float.isFinite(f))
+            return min;
+        double remainder = ((double) f - min) % distance;
         if (f < min) {
-            int i = (int) ((min - f) / distance) + 1;
-            return convert(f + distance * i);
+            return remainder == 0 ? max : (float) (max + remainder);
         } else if (f > max) {
-            int i = (int) ((f - max) / distance) + 1;
-            return convert(f - distance * i);
+            return (float) (min + remainder);
         } else {
             return f;
         }

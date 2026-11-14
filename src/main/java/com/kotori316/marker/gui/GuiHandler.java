@@ -25,9 +25,9 @@ public class GuiHandler implements IGuiHandler {
     public Container getServerGuiElement(int ID, EntityPlayer player, World world, int x, int y, int z) {
         TileEntity entity = world.getTileEntity(new BlockPos(x, y, z));
         if (entity instanceof TileFlexMarker && ID == Marker_ID) {
-            return new ContainerMarker(player);
+            return new ContainerMarker(player, entity);
         } else if (entity instanceof Tile16Marker && ID == Marker16_ID) {
-            return new ContainerMarker(player);
+            return new ContainerMarker(player, entity);
         }
         return null;
     }

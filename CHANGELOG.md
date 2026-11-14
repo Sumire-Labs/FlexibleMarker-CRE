@@ -1,5 +1,9 @@
 ## Unreleased
 
+- Required a matching open marker GUI for legacy edit packets and closed stale legacy containers.
+- Kept GUI access bound to its original world across dimension changes.
+- Replaced recursive angle wrapping to handle extreme rotations safely.
+
 - Fixed range updates accessing the client world from the network thread.
 - Synchronized range changes to nearby players even when their marker GUI is closed.
 - Bounded range-rendering work for large chunk areas and rejected invalid or out-of-world ranges.
