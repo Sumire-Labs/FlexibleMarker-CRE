@@ -1,5 +1,8 @@
 ## Unreleased
 
+- Allowed flexible-marker vertical distances to return to zero through buttons and numeric inputs, while keeping horizontal minimum distances.
+- Prevented uninitialized, zero-width, or inverted marker areas from being advertised as usable to mining machines.
+
 - Restored the shared fast-render buffer's translation after marker rendering, including failed draws.
 
 - Preserved fresh marker bounds through saving/synchronization and allowed real boundaries at the world origin.

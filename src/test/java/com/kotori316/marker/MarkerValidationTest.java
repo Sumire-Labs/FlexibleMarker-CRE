@@ -10,6 +10,21 @@ import static org.junit.jupiter.api.Assertions.*;
 class MarkerValidationTest {
 
     @Test
+    void aFlatAreaWithHorizontalExtentIsUsable() {
+        assertTrue(IAreaConfigurable.isUsableArea(new BlockPos(-16, 64, -16), new BlockPos(16, 64, 16)));
+        assertTrue(IAreaConfigurable.isUsableArea(BlockPos.ORIGIN, new BlockPos(16, 64, 16)));
+    }
+
+    @Test
+    void machinesCannotUseSingleAxisOrInvertedAreas() {
+        assertFalse(IAreaConfigurable.isUsableArea(BlockPos.ORIGIN, BlockPos.ORIGIN));
+        assertFalse(IAreaConfigurable.isUsableArea(BlockPos.ORIGIN, new BlockPos(32, 0, 0)));
+        assertFalse(IAreaConfigurable.isUsableArea(BlockPos.ORIGIN, new BlockPos(0, 0, 32)));
+        assertFalse(IAreaConfigurable.isUsableArea(new BlockPos(16, 64, 0), new BlockPos(0, 64, 16)));
+        assertFalse(IAreaConfigurable.isUsableArea(new BlockPos(0, 65, 0), new BlockPos(16, 64, 16)));
+    }
+
+    @Test
     void missingOrVerticalFacingFallsBackToHorizontal() {
         assertEquals(EnumFacing.NORTH, TileFlexMarker.horizontalFacing(null));
         assertEquals(EnumFacing.NORTH, TileFlexMarker.horizontalFacing(EnumFacing.UP));

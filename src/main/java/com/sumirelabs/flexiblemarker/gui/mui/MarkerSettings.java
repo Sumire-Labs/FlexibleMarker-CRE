@@ -19,7 +19,7 @@ final class MarkerSettings {
     static void distance(TileFlexMarker tile, TileFlexMarker.Movable direction, int target) {
         if (target == 0 && distance(tile, direction) == 0)
             return;
-        move(tile, direction, Math.max(1, Math.min(64, target)) - distance(tile, direction));
+        move(tile, direction, Math.max(direction.minimumDistance(), Math.min(64, target)) - distance(tile, direction));
     }
     static void move(TileFlexMarker tile, TileFlexMarker.Movable direction, int amount) {
         if (amount == 0)

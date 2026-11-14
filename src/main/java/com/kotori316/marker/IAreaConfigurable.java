@@ -12,6 +12,10 @@ public interface IAreaConfigurable {
 
     Runnable setMinMax(BlockPos min, BlockPos max);
 
+    static boolean isUsableArea(BlockPos min, BlockPos max) {
+        return min.getX() < max.getX() && min.getZ() < max.getZ() && min.getY() <= max.getY();
+    }
+
     double a = 0.5d, b = 10d / 16d, c = 6d / 16d;
 
     class Util {

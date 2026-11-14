@@ -170,7 +170,7 @@ public class Tile16Marker extends TileEntity implements ITileAreaProvider, IDebu
     // Interface implementations
     @Override
     public boolean hasLink() {
-        return true;
+        return IAreaConfigurable.isUsableArea(min(), max());
     }
 
     @Override

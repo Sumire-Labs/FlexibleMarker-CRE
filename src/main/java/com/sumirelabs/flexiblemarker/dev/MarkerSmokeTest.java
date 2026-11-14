@@ -164,6 +164,34 @@ public final class MarkerSmokeTest {
                     "A matching open GUI did not authorize the legacy edit packet");
                 check(((Tile16Marker) mc.world.getTileEntity(CHUNK)).getConfiguredSize() == 16,
                     "An open GUI authorized a packet for another marker");
+                number(mc, "up_distance", 16);
+                next(19);
+            } else if (stage == 19 && ticks >= 20) {
+                check(((TileFlexMarker) mc.world.getTileEntity(FLEX)).max().getY() == FLEX.getY() + 16,
+                    "Upper distance did not increase");
+                number(mc, "up_distance", 0);
+                next(20);
+            } else if (stage == 20 && ticks >= 20) {
+                check(((TileFlexMarker) mc.world.getTileEntity(FLEX)).max().getY() == FLEX.getY(),
+                    "Upper distance could not return to zero");
+                number(mc, "down_distance", 16);
+                next(21);
+            } else if (stage == 21 && ticks >= 20) {
+                check(((TileFlexMarker) mc.world.getTileEntity(FLEX)).min().getY() == FLEX.getY() - 16,
+                    "Lower distance did not increase");
+                number(mc, "down_distance", 0);
+                next(22);
+            } else if (stage == 22 && ticks >= 20) {
+                check(((TileFlexMarker) mc.world.getTileEntity(FLEX)).min().getY() == FLEX.getY(),
+                    "Lower distance could not return to zero");
+                press(mc, "up_minus16");
+                press(mc, "down_minus16");
+                next(23);
+            } else if (stage == 23 && ticks >= 20) {
+                TileFlexMarker marker = (TileFlexMarker) mc.world.getTileEntity(FLEX);
+                check(marker.min().getY() == FLEX.getY() && marker.max().getY() == FLEX.getY(),
+                    "Decreasing a zero vertical distance expanded the area");
+                check(marker.hasLink(), "Zero vertical expansion invalidated a usable horizontal marker area");
                 number(mc, "forward_distance", 99);
                 next(14);
             } else if (stage == 14 && ticks >= 20) {
@@ -334,6 +362,12 @@ public final class MarkerSmokeTest {
         flex.move(TileFlexMarker.Movable.FORWARD, Integer.MAX_VALUE);
         check(TileFlexMarker.Movable.FORWARD.distanceFromOrigin(origin, flex.min(), flex.max(), flex.direction) == 64,
             "Extreme movement escaped the marker limit");
+        flex.move(TileFlexMarker.Movable.FORWARD, -64);
+        flex.move(TileFlexMarker.Movable.LEFT, -64);
+        flex.move(TileFlexMarker.Movable.RIGHT, -64);
+        check(TileFlexMarker.Movable.FORWARD.distanceFromOrigin(origin, flex.min(), flex.max(), flex.direction) == 1
+            && flex.min().getX() < flex.max().getX() && flex.min().getZ() < flex.max().getZ(),
+            "Reducing distances allowed an empty horizontal marker area");
         Tile16Marker chunk = new Tile16Marker();
         chunk.setWorld(world);
         chunk.readFromNBT(incomplete);
@@ -383,12 +417,19 @@ public final class MarkerSmokeTest {
             BlockPos minimum = tile instanceof TileFlexMarker flex ? flex.min() : ((Tile16Marker) tile).min();
             BlockPos maximum = tile instanceof TileFlexMarker flex ? flex.max() : ((Tile16Marker) tile).max();
             check(minimum.equals(origin) && maximum.equals(origin), "Fresh marker bounds are not at its position");
+            check(!(tile instanceof TileFlexMarker flex ? flex.hasLink() : ((Tile16Marker) tile).hasLink()),
+                "Uninitialized marker advertised an empty area as valid");
             NBTTagCompound saved = tile.writeToNBT(new NBTTagCompound());
             check(saved.getLong("min") == minimum.toLong() && saved.getLong("max") == maximum.toLong(),
                 "Saving an uninitialized marker changed its bounds to the world origin");
             ((IAreaConfigurable) tile).setMinMax(BlockPos.ORIGIN, new BlockPos(17, 64, 17)).run();
             minimum = tile instanceof TileFlexMarker flex ? flex.min() : ((Tile16Marker) tile).min();
             check(minimum.equals(BlockPos.ORIGIN), "A real world-origin boundary was mistaken for missing bounds");
+            check(tile instanceof TileFlexMarker flex ? flex.hasLink() : ((Tile16Marker) tile).hasLink(),
+                "A usable area starting at the world origin was rejected");
+            ((IAreaConfigurable) tile).setMinMax(BlockPos.ORIGIN, new BlockPos(0, 64, 32)).run();
+            check(!(tile instanceof TileFlexMarker flex ? flex.hasLink() : ((Tile16Marker) tile).hasLink()),
+                "A marker advertised a zero-width area as valid");
         }
     }
 

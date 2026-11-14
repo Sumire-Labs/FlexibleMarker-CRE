@@ -59,22 +59,23 @@ public class TileFlexMarker extends TileEntity implements ITileAreaProvider, IDe
     public void move(Movable movable, int amount) {
         amount = Math.max(-64, Math.min(64, amount));
         EnumFacing facing = movable.getActualFacing(direction);
+        int minimum = movable.minimumDistance();
         BlockPos offset = getPos();
         if (facing.getAxisDirection() == EnumFacing.AxisDirection.POSITIVE) {
             max = max().offset(facing, amount);
             int d = getDistance(max, offset, facing.getAxis());
             if (d > 64) {
                 max = getLimited(max, offset, facing, 64);
-            } else if (d < 1) {
-                max = getLimited(max, offset, facing, 1);
+            } else if (d < minimum) {
+                max = getLimited(max, offset, facing, minimum);
             }
         } else {
             min = min().offset(facing, amount);
             int d = getDistance(offset, min, facing.getAxis());
             if (d > 64) {
                 min = getLimited(min, offset, facing, 64);
-            } else if (d < 1) {
-                min = getLimited(min, offset, facing, 1);
+            } else if (d < minimum) {
+                min = getLimited(min, offset, facing, minimum);
             }
             if (facing == EnumFacing.DOWN && min.getY() < 0) {
                 min = new BlockPos(min.getX(), 0, min.getZ());
@@ -170,8 +171,7 @@ public class TileFlexMarker extends TileEntity implements ITileAreaProvider, IDe
 
     @Override
     public boolean hasLink() {
-        // There must always be area.
-        return true;
+        return IAreaConfigurable.isUsableArea(min(), max());
     }
 
     static EnumFacing horizontalFacing(@Nullable EnumFacing facing) {
@@ -257,6 +257,10 @@ public class TileFlexMarker extends TileEntity implements ITileAreaProvider, IDe
 
         public EnumFacing getActualFacing(EnumFacing facing) {
             return this.operator.apply(facing);
+        }
+
+        public int minimumDistance() {
+            return this == UP || this == DOWN ? 0 : 1;
         }
 
         private static final Movable[] v;
