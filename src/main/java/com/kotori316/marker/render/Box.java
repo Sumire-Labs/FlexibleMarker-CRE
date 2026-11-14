@@ -8,6 +8,8 @@ import net.minecraft.util.math.MathHelper;
 /** Direct Java port of Kotori316's Box.scala, preserving vertex order and texture coordinates. */
 public class Box {
 
+    static final int MAX_SEGMENTS = 1024;
+
     public final double startX, startY, startZ, endX, endY, endZ, sizeX, sizeY, sizeZ;
     public final boolean firstSide, endSide;
     protected final double dx, dy, dz, lengthSq, offX, offY, offZ, maxSize;
@@ -115,10 +117,11 @@ public class Box {
             buffer.pos(e4X, e4Y, e4Z).colored().tex(sprite.getMinU(), sprite.getMaxV()).lightedAndEnd();
         }
         double l = Math.sqrt(dx / sizeX * dx / sizeX + dy / sizeY * dy / sizeY + dz / sizeZ * dz / sizeZ);
-        int lengthFloor = MathHelper.floor(l);
-        int i1 = 0;
-        while (i1 <= lengthFloor) {
-            double i2 = (i1 == lengthFloor) ? l : i1 + 1;
+        int segments = segmentCount(l);
+        double step = l >= MAX_SEGMENTS ? l / segments : 1;
+        for (int index = 0; index < segments; index++) {
+            double i1 = index * step;
+            double i2 = index == segments - 1 ? l : (index + 1) * step;
             buffer.pos(e1X + eX * i2, e1Y + eY * i2, e1Z + eZ * i2).colored().tex(sprite.getMinU(), sprite.getMinV())
                 .lightedAndEnd();
             buffer.pos(e1X + eX * i1, e1Y + eY * i1, e1Z + eZ * i1).colored().tex(sprite.getMaxU(), sprite.getMinV())
@@ -155,7 +158,6 @@ public class Box {
             buffer.pos(e1X + eX * i2, e1Y + eY * i2, e1Z + eZ * i2).colored().tex(sprite.getMinU(), sprite.getMaxV())
                 .lightedAndEnd();
 
-            i1 += 1;
         }
         if (endSide) {
             buffer.pos(e1X + dx, e1Y + dy, e1Z + dz).colored().tex(sprite.getMinU(), sprite.getMinV()).lightedAndEnd();
@@ -206,6 +208,11 @@ public class Box {
         return -(x * x + z * z) / y;
     }
 
+    private static int segmentCount(double length) {
+        // Keep ordinary texture tiling, but stretch distant/huge ranges instead of allocating unbounded vertices.
+        return length >= MAX_SEGMENTS ? MAX_SEGMENTS : MathHelper.floor(length) + 1;
+    }
+
     private static final class BoxX extends Box {
 
         BoxX(double startX, double endX, double y, double z, double sizeX, double sizeY, double sizeZ,
@@ -218,7 +225,9 @@ public class Box {
         public void render(BufferBuilder b, TextureAtlasSprite sprite) {
             double y = startY, z = startZ;
 
-            int count = MathHelper.floor(length / sizeX);
+            double tiles = length / sizeX;
+            int segments = segmentCount(tiles);
+            double step = tiles >= MAX_SEGMENTS ? tiles / segments : 1;
             float minU = sprite.getMinU();
             float minV = sprite.getMinV();
             float maXV = sprite.getInterpolatedV(sizeX / maxSize * 16);
@@ -234,9 +243,9 @@ public class Box {
                 buffer.pos(startX, y - offY, z + offZ).colored().tex(maYU, maZV).lightedAndEnd();
                 buffer.pos(startX, y + offY, z + offZ).colored().tex(minU, maZV).lightedAndEnd();
             }
-            int i1 = 0;
-            while (i1 <= count) {
-                double i2 = (i1 == count) ? length / sizeX : i1 + 1d;
+            for (int index = 0; index < segments; index++) {
+                double i1 = index * step;
+                double i2 = index == segments - 1 ? tiles : (index + 1) * step;
                 //North
                 buffer.pos(startX + sizeX * i2, y + offY, z - offZ).colored().tex(minU, minV).lightedAndEnd();
                 buffer.pos(startX + sizeX * i2, y - offY, z - offZ).colored().tex(maYU, minV).lightedAndEnd();
@@ -258,7 +267,6 @@ public class Box {
                 buffer.pos(startX + sizeX * i1, y - offY, z + offZ).colored().tex(maZU, maXV).lightedAndEnd();
                 buffer.pos(startX + sizeX * i1, y - offY, z - offZ).colored().tex(minU, maXV).lightedAndEnd();
 
-                i1 += 1;
             }
             if (endSide) {
                 //East
@@ -284,7 +292,9 @@ public class Box {
         public void render(BufferBuilder b, TextureAtlasSprite sprite) {
             double x = startX, z = startZ;
 
-            int count = MathHelper.floor(length / sizeY);
+            double tiles = length / sizeY;
+            int segments = segmentCount(tiles);
+            double step = tiles >= MAX_SEGMENTS ? tiles / segments : 1;
             float minU = sprite.getMinU();
             float minV = sprite.getMinV();
 
@@ -301,9 +311,9 @@ public class Box {
                 buffer.pos(x - offX, startY, z + offZ).colored().tex(maZU, maXV).lightedAndEnd();
                 buffer.pos(x - offX, startY, z - offZ).colored().tex(minU, maXV).lightedAndEnd();
             }
-            int i1 = 0;
-            while (i1 <= count) {
-                double i2 = (i1 == count) ? length / sizeY : i1 + 1d;
+            for (int index = 0; index < segments; index++) {
+                double i1 = index * step;
+                double i2 = index == segments - 1 ? tiles : (index + 1) * step;
                 //West
                 buffer.pos(x - offX, startY + sizeY * i2, z - offZ).colored().tex(minU, minV).lightedAndEnd();
                 buffer.pos(x - offX, startY + sizeY * i1, z - offZ).colored().tex(maYU, minV).lightedAndEnd();
@@ -325,7 +335,6 @@ public class Box {
                 buffer.pos(x + offX, startY + sizeY * i1, z + offZ).colored().tex(maYU, maXV).lightedAndEnd();
                 buffer.pos(x + offX, startY + sizeY * i2, z + offZ).colored().tex(minU, maXV).lightedAndEnd();
 
-                i1 += 1;
             }
             if (endSide) {
                 //Top
@@ -351,7 +360,9 @@ public class Box {
         public void render(BufferBuilder b, TextureAtlasSprite sprite) {
             double x = startX, y = startY;
 
-            int count = MathHelper.floor(length / sizeZ);
+            double tiles = length / sizeZ;
+            int segments = segmentCount(tiles);
+            double step = tiles >= MAX_SEGMENTS ? tiles / segments : 1;
             float minU = sprite.getMinU();
             float minV = sprite.getMinV();
             float maXU = sprite.getInterpolatedU(sizeX / maxSize * 16);
@@ -367,9 +378,9 @@ public class Box {
                 buffer.pos(x - offX, y - offY, startZ).colored().tex(maYU, maXV).lightedAndEnd();
                 buffer.pos(x - offX, y + offY, startZ).colored().tex(minU, maXV).lightedAndEnd();
             }
-            int i1 = 0;
-            while (i1 <= count) {
-                double i2 = (i1 == count) ? length / sizeZ : i1 + 1d;
+            for (int index = 0; index < segments; index++) {
+                double i1 = index * step;
+                double i2 = index == segments - 1 ? tiles : (index + 1) * step;
                 //West
                 buffer.pos(x - offX, y + offY, startZ + sizeZ * i1).colored().tex(minU, minV).lightedAndEnd();
                 buffer.pos(x - offX, y - offY, startZ + sizeZ * i1).colored().tex(maYU, minV).lightedAndEnd();
@@ -391,7 +402,6 @@ public class Box {
                 buffer.pos(x - offX, y - offY, startZ + sizeZ * i2).colored().tex(maXU, maZV).lightedAndEnd();
                 buffer.pos(x - offX, y - offY, startZ + sizeZ * i1).colored().tex(minU, maZV).lightedAndEnd();
 
-                i1 += 1;
             }
             if (endSide) {
                 //South

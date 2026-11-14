@@ -1,3 +1,10 @@
+## Unreleased
+
+- Fixed range updates accessing the client world from the network thread.
+- Synchronized range changes to nearby players even when their marker GUI is closed.
+- Bounded range-rendering work for large chunk areas and rejected invalid or out-of-world ranges.
+- Restored safe defaults for incomplete marker NBT and translated the vertical direction labels.
+
 ## 3.1.0
 
 - Migrated the build, development runs, CI, and publishing to CleanroomDevEnv and CleanroomGradle.

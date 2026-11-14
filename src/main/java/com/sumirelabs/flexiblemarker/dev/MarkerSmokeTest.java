@@ -83,6 +83,7 @@ public final class MarkerSmokeTest {
             if (stage == 1 && ticks >= 40) {
                 task = server.addScheduledTask(() -> {
                     EntityPlayerMP player = server.getPlayerList().getPlayerByUUID(uuid);
+                    validateMarkerState(player.world);
                     for (int x = -1; x <= 9; x++)
                         for (int z = -1; z <= 10; z++)
                             player.world.setBlockState(new BlockPos(x, 63, z), Blocks.STONE.getDefaultState());
@@ -100,13 +101,34 @@ public final class MarkerSmokeTest {
                 && marker.direction != null && marker.boxes != null
                 && mc.world.getTileEntity(CHUNK) instanceof Tile16Marker chunk && chunk.boxes != null) {
                 geometry();
+                validateMarkerState(mc.world);
                 check(Loader.isModLoaded("quarryplus") || !Loader.isModLoaded("scalar"),
                     "Unexpected Scalar dependency");
                 check(!MarkerGuiFactory.INSTANCE.canInteractWith(mc.player, new MarkerGuiData(mc.player, FLEX, 1)),
                     "Wrong marker GUI type accepted");
                 screenshot(mc, "world");
                 task = server.addScheduledTask(() -> {
+                    TileFlexMarker flex = (TileFlexMarker) server.getWorld(0).getTileEntity(FLEX);
+                    Tile16Marker chunkMarker = (Tile16Marker) server.getWorld(0).getTileEntity(CHUNK);
+                    flex.move(TileFlexMarker.Movable.RIGHT, 1);
+                    flex.markDirty();
+                    chunkMarker.changeSize(32);
+                    chunkMarker.markDirty();
+                });
+                next(18);
+            } else if (stage == 18 && ticks >= 20) {
+                TileFlexMarker flex = (TileFlexMarker) mc.world.getTileEntity(FLEX);
+                Tile16Marker chunk = (Tile16Marker) mc.world.getTileEntity(CHUNK);
+                check(TileFlexMarker.Movable.RIGHT.distanceFromOrigin(FLEX, flex.min(), flex.max(), flex.direction) == 6
+                    && chunk.getConfiguredSize() == 32, "Range did not synchronize without an open GUI");
+                task = server.addScheduledTask(() -> {
                     EntityPlayerMP player = server.getPlayerList().getPlayerByUUID(uuid);
+                    TileFlexMarker serverFlex = (TileFlexMarker) player.world.getTileEntity(FLEX);
+                    Tile16Marker serverChunk = (Tile16Marker) player.world.getTileEntity(CHUNK);
+                    serverFlex.move(TileFlexMarker.Movable.RIGHT, -1);
+                    serverFlex.markDirty();
+                    serverChunk.changeSize(16);
+                    serverChunk.markDirty();
                     MarkerGuiFactory.open(player, 0, player.world, FLEX);
                 });
                 next(3);
@@ -266,6 +288,49 @@ public final class MarkerSmokeTest {
             check(marker instanceof com.yogpc.qp.tile.IMarker, "QuarryPlus IMarker missing");
             check(((com.yogpc.qp.tile.IMarker) marker).hasLink(), "QuarryPlus marker link missing");
         }
+    }
+
+    private static void validateMarkerState(net.minecraft.world.World world) {
+        NBTTagCompound incomplete = new NBTTagCompound();
+        incomplete.setInteger("x", 10);
+        incomplete.setInteger("y", 64);
+        incomplete.setInteger("z", 10);
+        BlockPos origin = new BlockPos(10, 64, 10);
+        TileFlexMarker flex = new TileFlexMarker();
+        flex.setWorld(world);
+        flex.readFromNBT(incomplete);
+        check(flex.direction == EnumFacing.NORTH && flex.min().equals(origin) && flex.max().equals(origin),
+            "Missing NBT did not restore a usable marker");
+        incomplete.setString("direction", "up");
+        flex.readFromNBT(incomplete);
+        flex.init(flex.direction);
+        flex.move(TileFlexMarker.Movable.FORWARD, Integer.MAX_VALUE);
+        check(TileFlexMarker.Movable.FORWARD.distanceFromOrigin(origin, flex.min(), flex.max(), flex.direction) == 64,
+            "Extreme movement escaped the marker limit");
+        Tile16Marker chunk = new Tile16Marker();
+        chunk.setWorld(world);
+        chunk.readFromNBT(incomplete);
+        check(chunk.getConfiguredSize() == 16 && chunk.min().equals(origin) && chunk.max().equals(origin),
+            "Missing chunk-marker NBT lost defaults");
+        chunk.changeSize(32, 100, 0);
+        check(chunk.getConfiguredSize() == 32, "Valid chunk range was rejected");
+        BlockPos beforeMin = chunk.min(), beforeMax = chunk.max();
+        chunk.changeSize(Integer.MAX_VALUE - 15, 100, 0);
+        chunk.changeSize(17, 100, 0);
+        chunk.changeSize(32, world.getActualHeight(), 0);
+        check(chunk.getConfiguredSize() == 32 && chunk.min().equals(beforeMin) && chunk.max().equals(beforeMax),
+            "Invalid chunk range changed marker state");
+        Tile16Marker restored = new Tile16Marker();
+        restored.setWorld(world);
+        restored.readFromNBT(chunk.writeToNBT(new NBTTagCompound()));
+        check(
+            restored.getConfiguredSize() == 32 && restored.min().equals(beforeMin) && restored.max().equals(beforeMax),
+            "Chunk-marker NBT round-trip changed the selected area");
+        NBTTagCompound legacy = chunk.writeToNBT(new NBTTagCompound());
+        BlockPos legacyMax = beforeMax.up(300);
+        legacy.setLong("max", legacyMax.toLong());
+        restored.readFromNBT(legacy);
+        check(restored.max().equals(legacyMax), "Loading old NBT silently replaced the saved range");
     }
 
     private static void geometry() {

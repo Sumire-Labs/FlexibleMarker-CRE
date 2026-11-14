@@ -60,7 +60,8 @@ public class Button16Message implements IMessage {
                 || message.yMax < message.yMin)
                 return;
             TileEntity entity = world.getTileEntity(message.pos);
-            if (entity instanceof Tile16Marker marker) {
+            if (entity instanceof Tile16Marker marker
+                && marker.canChangeSize(message.amount, message.yMax, message.yMin)) {
                 marker.changeSize(message.amount, message.yMax, message.yMin);
                 marker.markDirty();
                 PacketHandler.sendToClient(new AreaMessage(message.pos, message.dim, marker.min(), marker.max()),

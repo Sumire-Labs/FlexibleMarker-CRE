@@ -13,6 +13,8 @@ import com.yogpc.qp.tile.IMarker;
 
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.network.NetworkManager;
+import net.minecraft.network.play.server.SPacketUpdateTileEntity;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.NonNullList;
@@ -40,11 +42,11 @@ public class TileFlexMarker extends TileEntity implements ITileAreaProvider, IDe
     private BlockPos max = BlockPos.ORIGIN;
     @Nullable public Box[] boxes;
     @Nullable public Box directionBox;
-    public EnumFacing direction;
+    public EnumFacing direction = EnumFacing.NORTH;
     private boolean bcLoaded = Loader.isModLoaded(BC_TILE_ID); // ModAPIManager.INSTANCE.hasAPI("buildcraftapi_tiles");
 
     public void init(EnumFacing facing) {
-        this.direction = facing;
+        this.direction = horizontalFacing(facing);
         this.min = getPos();
         this.max = getPos();
         move(Movable.LEFT, 5);
@@ -55,6 +57,7 @@ public class TileFlexMarker extends TileEntity implements ITileAreaProvider, IDe
 
     @SuppressWarnings("Duplicates")
     public void move(Movable movable, int amount) {
+        amount = Math.max(-64, Math.min(64, amount));
         EnumFacing facing = movable.getActualFacing(direction);
         BlockPos offset = getPos();
         if (facing.getAxisDirection() == EnumFacing.AxisDirection.POSITIVE) {
@@ -90,7 +93,7 @@ public class TileFlexMarker extends TileEntity implements ITileAreaProvider, IDe
     }
 
     private void setRender() {
-        if (!world.isRemote)
+        if (world == null || !world.isRemote)
             return;
         boxes = IAreaConfigurable.Util.getRenderBox(this.min, this.max);
         AxisAlignedBB bb;
@@ -116,9 +119,9 @@ public class TileFlexMarker extends TileEntity implements ITileAreaProvider, IDe
     @Override
     public void readFromNBT(NBTTagCompound compound) {
         super.readFromNBT(compound);
-        min = BlockPos.fromLong(compound.getLong("min"));
-        max = BlockPos.fromLong(compound.getLong("max"));
-        direction = EnumFacing.byName(compound.getString("direction"));
+        min = compound.hasKey("min", 4) ? BlockPos.fromLong(compound.getLong("min")) : getPos();
+        max = compound.hasKey("max", 4) ? BlockPos.fromLong(compound.getLong("max")) : getPos();
+        direction = horizontalFacing(EnumFacing.byName(compound.getString("direction")));
         if (hasWorld()) {
             setRender();
         }
@@ -127,6 +130,25 @@ public class TileFlexMarker extends TileEntity implements ITileAreaProvider, IDe
     @Override
     public NBTTagCompound getUpdateTag() {
         return super.serializeNBT();
+    }
+
+    @Override
+    public SPacketUpdateTileEntity getUpdatePacket() {
+        return new SPacketUpdateTileEntity(getPos(), 0, getUpdateTag());
+    }
+
+    @Override
+    public void onDataPacket(NetworkManager net, SPacketUpdateTileEntity packet) {
+        readFromNBT(packet.getNbtCompound());
+    }
+
+    @Override
+    public void markDirty() {
+        super.markDirty();
+        if (world != null && !world.isRemote && world.isBlockLoaded(pos) && world.getTileEntity(pos) == this) {
+            net.minecraft.block.state.IBlockState state = world.getBlockState(pos);
+            world.notifyBlockUpdate(pos, state, state, 2);
+        }
     }
 
     @Override
@@ -150,6 +172,10 @@ public class TileFlexMarker extends TileEntity implements ITileAreaProvider, IDe
     public boolean hasLink() {
         // There must always be area.
         return true;
+    }
+
+    static EnumFacing horizontalFacing(@Nullable EnumFacing facing) {
+        return facing != null && facing.getAxis().isHorizontal() ? facing : EnumFacing.NORTH;
     }
 
     @Override

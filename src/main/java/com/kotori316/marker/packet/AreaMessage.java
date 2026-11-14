@@ -7,7 +7,6 @@ import net.minecraft.network.PacketBuffer;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.common.FMLCommonHandler;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
 import net.minecraftforge.fml.relauncher.Side;
@@ -51,19 +50,21 @@ public class AreaMessage implements IMessage {
     }
 
     public static IMessage onReceive(AreaMessage message, MessageContext ctx) {
-        World world = AreaMessage.world();
-        TileEntity entity = world.getTileEntity(message.pos);
-        if (entity instanceof IAreaConfigurable && world.provider.getDimension() == message.dim) {
-            IAreaConfigurable marker = (IAreaConfigurable) entity;
-            FMLCommonHandler.instance().getWorldThread(ctx.netHandler)
-                .addScheduledTask(marker.setMinMax(message.min, message.max));
-        }
+        if (ctx.side == Side.CLIENT)
+            applyOnClient(message);
         return null;
     }
 
     @SideOnly(Side.CLIENT)
-    private static World world() {
-        return Minecraft.getMinecraft().world;
+    private static void applyOnClient(AreaMessage message) {
+        Minecraft.getMinecraft().addScheduledTask(() -> {
+            World world = Minecraft.getMinecraft().world;
+            if (world == null || world.provider.getDimension() != message.dim || !world.isBlockLoaded(message.pos))
+                return;
+            TileEntity entity = world.getTileEntity(message.pos);
+            if (entity instanceof IAreaConfigurable marker)
+                marker.setMinMax(message.min, message.max).run();
+        });
     }
 
 }

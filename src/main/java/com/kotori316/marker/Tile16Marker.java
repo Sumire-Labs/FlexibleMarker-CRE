@@ -11,6 +11,8 @@ import com.yogpc.qp.tile.IMarker;
 
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.network.NetworkManager;
+import net.minecraft.network.play.server.SPacketUpdateTileEntity;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.NonNullList;
@@ -52,6 +54,8 @@ public class Tile16Marker extends TileEntity implements ITileAreaProvider, IDebu
     }
 
     public void changeSize(int size, int yMax, int yMin) {
+        if (!canChangeSize(size, yMax, yMin))
+            return;
         this.size = size;
         BlockPos edge1 = getPos().add(xDirection.getOffset() * (size + 1), 0, zDirection.getOffset() * (size + 1));
         BlockPos edge2 = getPos();
@@ -60,8 +64,24 @@ public class Tile16Marker extends TileEntity implements ITileAreaProvider, IDebu
         setRender();
     }
 
+    public boolean canChangeSize(int size, int yMax, int yMin) {
+        return validSize(getPos(), xDirection, zDirection, size, yMax, yMin,
+            world == null ? 256 : world.getActualHeight());
+    }
+
+    static boolean validSize(BlockPos origin, EnumFacing.AxisDirection xDirection,
+        EnumFacing.AxisDirection zDirection, int size, int yMax, int yMin, int height) {
+        if (size < 16 || size % 16 != 0 || yMin < 0 || yMax < yMin || yMax >= height)
+            return false;
+        long distance = (long) size + 1;
+        long x = origin.getX() + xDirection.getOffset() * distance;
+        long z = origin.getZ() + zDirection.getOffset() * distance;
+        // Minecraft's horizontal build limit; also keeps packed BlockPos NBT/network values lossless.
+        return x >= -30_000_000 && x < 30_000_000 && z >= -30_000_000 && z < 30_000_000;
+    }
+
     private void setRender() {
-        if (!world.isRemote)
+        if (world == null || !world.isRemote)
             return;
         boxes = IAreaConfigurable.Util.getRenderBox(this.min, this.max);
     }
@@ -80,6 +100,25 @@ public class Tile16Marker extends TileEntity implements ITileAreaProvider, IDebu
     @Override
     public NBTTagCompound getUpdateTag() {
         return super.serializeNBT();
+    }
+
+    @Override
+    public SPacketUpdateTileEntity getUpdatePacket() {
+        return new SPacketUpdateTileEntity(getPos(), 0, getUpdateTag());
+    }
+
+    @Override
+    public void onDataPacket(NetworkManager net, SPacketUpdateTileEntity packet) {
+        readFromNBT(packet.getNbtCompound());
+    }
+
+    @Override
+    public void markDirty() {
+        super.markDirty();
+        if (world != null && !world.isRemote && world.isBlockLoaded(pos) && world.getTileEntity(pos) == this) {
+            net.minecraft.block.state.IBlockState state = world.getBlockState(pos);
+            world.notifyBlockUpdate(pos, state, state, 2);
+        }
     }
 
     @Override
@@ -102,11 +141,17 @@ public class Tile16Marker extends TileEntity implements ITileAreaProvider, IDebu
     @Override
     public void readFromNBT(NBTTagCompound compound) {
         super.readFromNBT(compound);
-        min = BlockPos.fromLong(compound.getLong("min"));
-        max = BlockPos.fromLong(compound.getLong("max"));
+        min = compound.hasKey("min", 4) ? BlockPos.fromLong(compound.getLong("min")) : getPos();
+        max = compound.hasKey("max", 4) ? BlockPos.fromLong(compound.getLong("max")) : getPos();
         xDirection = compound.getBoolean("x") ? EnumFacing.AxisDirection.POSITIVE : EnumFacing.AxisDirection.NEGATIVE;
-        zDirection = compound.getBoolean("z") ? EnumFacing.AxisDirection.POSITIVE : EnumFacing.AxisDirection.NEGATIVE;
-        size = compound.getInteger("size");
+        zDirection = !compound.hasKey("z", 99) || compound.getBoolean("z")
+            ? EnumFacing.AxisDirection.POSITIVE
+            : EnumFacing.AxisDirection.NEGATIVE;
+        size = compound.hasKey("size", 99) ? compound.getInteger("size") : 16;
+        // Preserve saved geometry; validate new edits rather than silently replacing an existing area on load.
+        if (size < 16 || size % 16 != 0) {
+            size = 16;
+        }
         if (hasWorld()) {
             setRender();
         }
