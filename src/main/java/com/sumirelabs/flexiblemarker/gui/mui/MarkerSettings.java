@@ -28,7 +28,7 @@ final class MarkerSettings {
         tile.markDirty();
     }
     static int maxY(TileEntity tile) {
-        return Math.max(0, tile.getWorld().getActualHeight() - 1);
+        return Math.max(0, tile.getWorld().getHeight() - 1);
     }
     static void chunks(Tile16Marker tile, int chunks) {
         int clamped = Math.max(1, Math.min(MAX_CHUNKS, chunks));

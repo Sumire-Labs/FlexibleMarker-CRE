@@ -1,5 +1,7 @@
 ## Unreleased
 
+- Used the build height rather than terrain height so chunk markers work above the Nether roof.
+
 - Updated CleanroomDevEnv to a7f3735, migrating the build scripts to Kotlin DSL and enabling configuration caching.
 - Updated release-note generation to use the tagged version's CHANGELOG section.
 

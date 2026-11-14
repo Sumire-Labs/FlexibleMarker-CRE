@@ -66,7 +66,7 @@ public class Tile16Marker extends TileEntity implements ITileAreaProvider, IDebu
 
     public boolean canChangeSize(int size, int yMax, int yMin) {
         return validSize(getPos(), xDirection, zDirection, size, yMax, yMin,
-            world == null ? 256 : world.getActualHeight());
+            world == null ? 256 : world.getHeight());
     }
 
     static boolean validSize(BlockPos origin, EnumFacing.AxisDirection xDirection,

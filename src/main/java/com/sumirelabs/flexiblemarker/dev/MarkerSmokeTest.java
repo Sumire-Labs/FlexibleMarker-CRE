@@ -87,6 +87,7 @@ public final class MarkerSmokeTest {
                 task = server.addScheduledTask(() -> {
                     EntityPlayerMP player = server.getPlayerList().getPlayerByUUID(uuid);
                     validateMarkerState(player.world);
+                    validateNetherHeight(server);
                     for (int x = -1; x <= 9; x++)
                         for (int z = -1; z <= 10; z++)
                             player.world.setBlockState(new BlockPos(x, 63, z), Blocks.STONE.getDefaultState());
@@ -369,6 +370,19 @@ public final class MarkerSmokeTest {
         } finally {
             player.openContainer = previous;
         }
+    }
+
+    private static void validateNetherHeight(IntegratedServer server) {
+        net.minecraft.world.WorldServer nether = server.getWorld(-1);
+        check(nether.getActualHeight() == 128 && nether.getHeight() == 256,
+            "Nether terrain/build height distinction changed");
+        Tile16Marker marker = new Tile16Marker();
+        marker.setWorld(nether);
+        marker.setPos(new BlockPos(10, 200, 10));
+        marker.init(EnumFacing.AxisDirection.NEGATIVE, EnumFacing.AxisDirection.POSITIVE);
+        marker.changeSize(32, 255, 128);
+        check(marker.getConfiguredSize() == 32 && marker.min().getY() == 128 && marker.max().getY() == 255,
+            "Chunk marker rejected a valid range above the Nether roof");
     }
 
     private static void geometry() {
