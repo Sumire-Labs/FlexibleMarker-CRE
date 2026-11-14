@@ -105,6 +105,7 @@ public final class MarkerSmokeTest {
                 && marker.direction != null && marker.boxes != null
                 && mc.world.getTileEntity(CHUNK) instanceof Tile16Marker chunk && chunk.boxes != null) {
                 geometry();
+                validateRendererState(mc);
                 validateMarkerState(mc.world);
                 check(Loader.isModLoaded("quarryplus") || !Loader.isModLoaded("scalar"),
                     "Unexpected Scalar dependency");
@@ -404,6 +405,28 @@ public final class MarkerSmokeTest {
             "Chunk marker rejected a valid range above the Nether roof");
     }
 
+    private static void validateRendererState(Minecraft mc) {
+        Recorder recorder = new Recorder();
+        com.kotori316.marker.render.RenderMarker.getInstance().renderTileEntityFast(
+            (TileFlexMarker) mc.world.getTileEntity(FLEX), 1, 2, 3, 0, -1, 1, recorder);
+        check(recorder.translationX == 0 && recorder.translationY == 0 && recorder.translationZ == 0,
+            "Flexible marker left a translation in the shared render buffer");
+        com.kotori316.marker.render.Render16Marker.getInstance().renderTileEntityFast(
+            (Tile16Marker) mc.world.getTileEntity(CHUNK), 1, 2, 3, 0, -1, 1, recorder);
+        check(recorder.translationX == 0 && recorder.translationY == 0 && recorder.translationZ == 0,
+            "Chunk marker left a translation in the shared render buffer");
+        recorder.failOnVertex = true;
+        try {
+            com.kotori316.marker.render.RenderMarker.getInstance().renderTileEntityFast(
+                (TileFlexMarker) mc.world.getTileEntity(FLEX), 1, 2, 3, 0, -1, 1, recorder);
+            throw new IllegalStateException("Expected the deliberate render failure");
+        } catch (IllegalStateException failure) {
+            check("Deliberate render failure".equals(failure.getMessage()), "Unexpected render failure");
+        }
+        check(recorder.translationX == 0 && recorder.translationY == 0 && recorder.translationZ == 0,
+            "Render failure left a translation in the shared buffer");
+    }
+
     private static void geometry() {
         TextureAtlasSprite sprite = new TextureAtlasSprite("smoke") {
         };
@@ -424,11 +447,22 @@ public final class MarkerSmokeTest {
     private static final class Recorder extends BufferBuilder {
 
         int vertices;
+        boolean failOnVertex;
+        double translationX, translationY, translationZ;
         Recorder() {
             super(256);
         }
         @Override
+        public void setTranslation(double x, double y, double z) {
+            super.setTranslation(x, y, z);
+            translationX = x;
+            translationY = y;
+            translationZ = z;
+        }
+        @Override
         public BufferBuilder pos(double x, double y, double z) {
+            if (failOnVertex)
+                throw new IllegalStateException("Deliberate render failure");
             check(Double.isFinite(x) && Double.isFinite(y) && Double.isFinite(z), "Non-finite vertex");
             return this;
         }

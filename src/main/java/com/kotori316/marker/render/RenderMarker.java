@@ -30,17 +30,21 @@ public class RenderMarker extends FastTESR<TileFlexMarker> {
     public void renderTileEntityFast(TileFlexMarker te, double x, double y, double z,
         float partialTicks, int destroyStage, float partial, BufferBuilder buffer) {
         Minecraft.getMinecraft().profiler.startSection("marker");
-        BlockPos pos = te.getPos();
-        buffer.setTranslation(x - pos.getX(), y - pos.getY(), z - pos.getZ());
-        if (te.boxes != null) {
-            for (Box box : te.boxes) {
-                box.render(buffer, spriteRed);
+        try {
+            BlockPos pos = te.getPos();
+            buffer.setTranslation(x - pos.getX(), y - pos.getY(), z - pos.getZ());
+            if (te.boxes != null) {
+                for (Box box : te.boxes) {
+                    box.render(buffer, spriteRed);
+                }
             }
+            if (te.directionBox != null) {
+                te.directionBox.render(buffer, spriteBlue);
+            }
+        } finally {
+            buffer.setTranslation(0, 0, 0);
+            Minecraft.getMinecraft().profiler.endSection();
         }
-        if (te.directionBox != null) {
-            te.directionBox.render(buffer, spriteBlue);
-        }
-        Minecraft.getMinecraft().profiler.endSection();
     }
 
     @SubscribeEvent

@@ -21,14 +21,18 @@ public class Render16Marker extends FastTESR<Tile16Marker> {
     public void renderTileEntityFast(Tile16Marker te, double x, double y, double z,
         float partialTicks, int destroyStage, float partial, BufferBuilder buffer) {
         Minecraft.getMinecraft().profiler.startSection("marker");
-        BlockPos pos = te.getPos();
-        buffer.setTranslation(x - pos.getX(), y - pos.getY(), z - pos.getZ());
-        if (te.boxes != null) {
-            for (Box box : te.boxes) {
-                box.render(buffer, RenderMarker.getInstance().spriteRed);
+        try {
+            BlockPos pos = te.getPos();
+            buffer.setTranslation(x - pos.getX(), y - pos.getY(), z - pos.getZ());
+            if (te.boxes != null) {
+                for (Box box : te.boxes) {
+                    box.render(buffer, RenderMarker.getInstance().spriteRed);
+                }
             }
+        } finally {
+            buffer.setTranslation(0, 0, 0);
+            Minecraft.getMinecraft().profiler.endSection();
         }
-        Minecraft.getMinecraft().profiler.endSection();
     }
 
     @Override

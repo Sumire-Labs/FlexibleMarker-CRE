@@ -1,5 +1,7 @@
 ## Unreleased
 
+- Restored the shared fast-render buffer's translation after marker rendering, including failed draws.
+
 - Preserved fresh marker bounds through saving/synchronization and allowed real boundaries at the world origin.
 
 - Used the build height rather than terrain height so chunk markers work above the Nether roof.
