@@ -7,16 +7,10 @@
 ### Added
 
 - English and Japanese labels for the up/down controls.
-- Maven publishing for development (MCP) and runtime (SRG) artifacts.
 
 ### Changed
 
 - Requires Cleanroom Loader 0.7.14-alpha or later.
-- Moved the build, development runs, CI, and publishing to CleanroomDevEnv (`a7f3735`) and CleanroomGradle.
-- Converted the Gradle scripts to Kotlin DSL and enabled configuration caching.
-- Enabled Spotless formatting and import checks.
-- Updated Gradle to 9.9.0 and `actions/setup-java` to v6.2.0.
-- Release notes now use the tagged version's section in this changelog.
 
 ### Fixed
 
@@ -45,9 +39,7 @@
 
 - Ported Flexible Marker to Cleanroom Loader. Standard Forge is no longer supported.
 - Replaced both marker GUIs with ModularUI.
-- Ported the Scala renderer to Java.
 - Migrated from Java 8 to Java 25.
-- Updated MCP mappings to stable 39-1.12.
 
 ### Removed
 
